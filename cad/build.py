@@ -1,5 +1,5 @@
 """Parametric CAD for Unskinny Mk II (CadQuery). Exports STEP, STL and DXF into out/."""
-import os, sys, json
+import os, sys, json, math
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 import cadquery as cq
 from params import *
@@ -60,18 +60,53 @@ def frame():
     return f
 
 def hub():
-    return cq.Workplane("XY").circle(HUB_D/2).extrude(HUB_H - 0.5).translate((0, 0, -HUB_H/2 + 0.25))
+    """2812 hub motor: fixed stator flange at the bottom, finned rotating bell above it."""
+    z0 = -HUB_H/2 + 0.25
+    stator = cq.Workplane("XY").circle(HUB_D/2).extrude(6).translate((0, 0, z0))
+    bell = (cq.Workplane("XY").circle(HUB_D/2 - 1).extrude(HUB_H - 0.5 - 12).translate((0, 0, z0 + 6))
+            .faces(">Z").edges().chamfer(1.5))
+    fins = cq.Workplane("XY").polarArray(HUB_D/2 - 1, 0, 360, 12).rect(2.5, 1.6).extrude(HUB_H - 0.5 - 14).translate((0, 0, z0 + 7))
+    top = cq.Workplane("XY").circle(HUB_D/2 - 6).extrude(6).translate((0, 0, z0 + HUB_H - 6.5))
+    return stator.union(bell).union(fins.intersect(cq.Workplane("XY").circle(HUB_D/2).extrude(HUB_H).translate((0, 0, z0)))).union(top)
 
 def wheels():
     out = []
     for s in (1, -1):
-        w = cq.Workplane("XY").cylinder(WHEEL_W, WHEEL_D/2, direct=(0, 1, 0)).translate((WHEEL_X, s*(PLATE_HALF_W - (WHEEL_W+6)/2), 0))
-        out.append(w)
+        y = s*(PLATE_HALF_W - (WHEEL_W+6)/2)
+        tire = (cq.Workplane("XZ").circle(WHEEL_D/2).circle(WHEEL_D/2 - 9).extrude(WHEEL_W/2, both=True)
+                .edges().fillet(2.5))
+        hubd = (cq.Workplane("XZ").circle(WHEEL_D/2 - 9).circle(5).extrude(WHEEL_W/2 - 3, both=True))
+        hubd = hubd.cut(cq.Workplane("XZ").polarArray(15, 0, 360, 5).circle(4).extrude(WHEEL_W, both=True))
+        out.append(tire.union(hubd).translate((WHEEL_X, y, 0)))
     return out
 
 def drive_motors():
-    return [cq.Workplane("XY").cylinder(DRIVE_L, DRIVE_D/2, direct=(0, 1, 0))
-            .translate((WHEEL_X, s*(PLATE_HALF_W - WHEEL_W - 6 - DRIVE_L/2), 0)) for s in (1, -1)]
+    out = []
+    for s in (1, -1):
+        yc = s*(PLATE_HALF_W - WHEEL_W - 6 - DRIVE_L/2)
+        gear = cq.Workplane("XZ").circle(DRIVE_D/2).extrude(DRIVE_L*0.55/2, both=True).translate((0, DRIVE_L*0.225*s, 0))
+        can = cq.Workplane("XZ").circle(DRIVE_D/2 - 2).extrude(DRIVE_L*0.45/2, both=True).translate((0, -DRIVE_L*0.275*s, 0))
+        out.append(gear.union(can).translate((WHEEL_X, yc, 0)))
+    return out
+
+def details():
+    """Display-only parts (fasteners, electronics) used for renders; their mass is in BOUGHT."""
+    d = {}
+    zt, zb = ZP + PLATE_T, -ZP - PLATE_T
+    heads = [(x, y) for x in (POD_FRONT_X - 6, PLATE_REAR_X + 8) for y in (-45, 0, 45)]
+    motor = [(12.5*math.cos(math.radians(a)), 12.5*math.sin(math.radians(a))) for a in (0, 90, 180, 270)]
+    def caps(pts, z, up, r=2.75, h=3.0):
+        w = cq.Workplane("XY").pushPoints(pts).circle(r).extrude(h if up else -h).translate((0, 0, z))
+        return w.cut(cq.Workplane("XY").pushPoints(pts).polygon(6, 2.6).extrude(1.2 if up else -1.2).translate((0, 0, z + (h - 1.2 if up else -h + 1.2))))
+    d["bolts_top"] = caps(heads + motor, zt, True)
+    d["bolts_bottom"] = caps(heads + motor, zb, False)
+    bar_pts = [(15*math.cos(math.radians(a)), 15*math.sin(math.radians(a))) for a in (45, 135, 225, 315)]
+    d["bolts_bar"] = caps(bar_pts, BAR_T/2, True, r=4.0, h=4.0)
+    for i, (ex, ey) in enumerate(ESC_BAYS):
+        d[f"esc_{i}"] = cq.Workplane("XY").box(28, 26, 12).edges("|Z").fillet(2).translate((ex, ey, -ZP + 6))
+    d["receiver"] = cq.Workplane("XY").box(22, 14, 8).edges("|Z").fillet(1.5).translate((-150, 60, 8))
+    d["switch"] = cq.Workplane("XY").box(10, 18, 10).translate((-150, -60, 8))
+    return d
 
 def battery():
     return cq.Workplane("XY").box(*BATT).translate((BATT_X, 0, 0))
@@ -108,8 +143,9 @@ def build_all():
     for i, w in enumerate(wheels()): solids[f"wheel_{i}"] = w
     for i, m in enumerate(drive_motors()): solids[f"drive_{i}"] = m
 
-    for n, s in solids.items():
-        cq.exporters.export(s, os.path.join(OUT, f"{n}.stl"), tolerance=0.1, angularTolerance=0.2)
+    detail = details()
+    for n, s in list(solids.items()) + [("detail_" + k, v) for k, v in detail.items()]:
+        cq.exporters.export(s, os.path.join(OUT, f"{n}.stl"), tolerance=0.05, angularTolerance=0.15)
     for n in ("bar", "top_plate", "bottom_plate"):
         cq.exporters.export(solids[n], os.path.join(OUT, f"{n}.step"))
         sec = solids[n].section()

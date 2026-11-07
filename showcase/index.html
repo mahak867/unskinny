@@ -16,13 +16,24 @@ h1,h2{font-family:var(--display);margin:0;line-height:1.1;text-wrap:balance}
 h1{font-size:2.6rem} h2{font-size:1.4rem}
 p{margin:0;max-width:72ch} section{display:grid;gap:14px}
 .eyebrow{font:500 .75rem var(--mono);letter-spacing:.12em;text-transform:uppercase;color:var(--accent)}
-#stage{position:relative;height:min(62vh,520px);background:var(--stage);border:1px solid var(--line)}
-#stage canvas{display:block;width:100%;height:100%}
-.ctrl{position:absolute;left:12px;bottom:12px;display:flex;flex-wrap:wrap;gap:6px}
+#stage{position:relative;height:min(70vh,600px);background:radial-gradient(ellipse at 50% 35%,var(--panel),var(--stage) 75%);border:1px solid var(--line);overflow:hidden}
+#stage canvas{display:block;width:100%;height:100%;touch-action:none}
+.ctrl{position:absolute;left:12px;bottom:12px;right:12px;display:flex;flex-wrap:wrap;gap:6px}
 .ctrl button{font:500 .78rem var(--mono);background:var(--panel);color:var(--fg);border:1px solid var(--line);padding:6px 10px;cursor:pointer}
 .ctrl button[aria-pressed="true"]{background:var(--accent);color:#fff;border-color:var(--accent)}
 .ctrl button:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.ctrl .sep{width:1px;background:var(--line);margin:0 4px}
 #status{position:absolute;right:12px;top:10px;font:500 .75rem var(--mono);color:var(--muted)}
+#tip{position:absolute;pointer-events:none;background:var(--panel);border:1px solid var(--line);padding:8px 10px;font-size:.8rem;line-height:1.4;min-width:160px;box-shadow:0 4px 14px rgba(0,0,0,.12)}
+#tip b{font-family:var(--display);font-size:.95rem;display:block}
+#tip span{color:var(--muted);display:block}
+#tip i{font:500 .78rem var(--mono);font-style:normal;color:var(--accent)}
+.legend{position:absolute;right:12px;top:34px;display:grid;gap:3px;font:500 .72rem var(--mono);color:var(--muted);background:color-mix(in srgb,var(--panel) 85%,transparent);border:1px solid var(--line);padding:8px 10px}
+.legend div{display:flex;gap:7px;align-items:center}
+.legend s{width:10px;height:10px;display:inline-block;text-decoration:none}
+.hud{position:absolute;left:12px;top:10px;font:500 .72rem var(--mono);color:var(--muted);display:grid;gap:2px}
+.hud b{color:var(--fg);font-weight:600}
+@media (max-width:600px){.legend{display:none}}
 .kpi{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:1px;background:var(--line);border:1px solid var(--line)}
 .kpi div{background:var(--panel);padding:12px 14px}
 .kpi b{display:block;font:600 1.25rem var(--mono);font-variant-numeric:tabular-nums}
@@ -49,12 +60,22 @@ figcaption{font-size:.8rem;color:#5b6562}
 
 <section>
   <div id="stage"><span id="status">Loading model…</span>
+    <div class="hud"><div>WEAPON <b id="h-rpm">0</b> rpm</div><div>ENERGY <b id="h-j">0</b> J</div><div>TIP <b id="h-tip">0</b> m/s</div></div>
+    <div class="legend" id="legend"></div>
+    <div id="tip" hidden></div>
     <div class="ctrl">
       <button id="spin" aria-pressed="true" type="button">Spin weapon</button>
       <button id="xray" aria-pressed="false" type="button">X-ray top plate</button>
       <button id="explode" aria-pressed="false" type="button">Exploded view</button>
+      <button id="sweep" aria-pressed="false" type="button">Show bar sweep</button>
+      <span class="sep"></span>
+      <button data-view="iso" type="button">Iso</button>
+      <button data-view="top" type="button">Top</button>
+      <button data-view="front" type="button">Front</button>
+      <button data-view="side" type="button">Side</button>
     </div>
   </div>
+  <p style="color:var(--muted);font-size:.85rem">Drag to orbit, scroll or pinch to zoom, hover or tap a part for its material and mass. Spin-up follows the simulated curve: 90% speed in 2.0 s.</p>
 </section>
 
 <section>
@@ -110,40 +131,93 @@ figcaption{font-size:.8rem;color:#5b6562}
 <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
 <script>
 (function(){
-  const stage=document.getElementById('stage'),status=document.getElementById('status');
+  const stage=document.getElementById('stage'),status=document.getElementById('status'),tip=document.getElementById('tip');
   if(!window.THREE||!THREE.OrbitControls){status.textContent='3D viewer could not load. The renders below show the model.';return}
+  const css=getComputedStyle(document.documentElement);
   const renderer=new THREE.WebGLRenderer({antialias:true,alpha:true});
-  renderer.setPixelRatio(Math.min(devicePixelRatio,2));stage.prepend(renderer.domElement);
-  const scene=new THREE.Scene(),cam=new THREE.PerspectiveCamera(35,1,1,5000);
-  cam.up.set(0,0,1);cam.position.set(260,-420,300);
-  const ctl=new THREE.OrbitControls(cam,renderer.domElement);ctl.target.set(-80,0,0);ctl.enableDamping=true;
-  scene.add(new THREE.HemisphereLight(0xffffff,0x445055,0.9));
-  const d=new THREE.DirectionalLight(0xffffff,0.8);d.position.set(200,-300,500);scene.add(d);
-  const C={bar:0x7d8b94,top_plate:0xb9bfc4,bottom_plate:0xb9bfc4,frame:0xe0662a,hub_motor:0x2b2f33,battery:0x2f6fb0,fork:0x9aa3a8};
-  const EX={top_plate:[0,0,70],bottom_plate:[0,0,-70],bar:[0,0,30],fork:[0,0,-110],battery:[0,0,120],frame:[0,0,0]};
-  const names=['bar','top_plate','bottom_plate','frame','hub_motor','battery','fork','wheel_0','wheel_1','drive_0','drive_1'];
-  const meshes={};
+  renderer.setPixelRatio(Math.min(devicePixelRatio,2));renderer.shadowMap.enabled=true;renderer.shadowMap.type=THREE.PCFSoftShadowMap;
+  renderer.outputEncoding=THREE.sRGBEncoding;renderer.toneMapping=THREE.ACESFilmicToneMapping;renderer.toneMappingExposure=1.05;
+  stage.prepend(renderer.domElement);
+  const scene=new THREE.Scene(),cam=new THREE.PerspectiveCamera(32,1,1,6000);
+  cam.up.set(0,0,1);
+  const ctl=new THREE.OrbitControls(cam,renderer.domElement);ctl.enableDamping=true;ctl.dampingFactor=0.08;ctl.minDistance=150;ctl.maxDistance=1400;
+  const CENTER=new THREE.Vector3(-90,0,-5);
+  const VIEWS={iso:[260,-430,300],top:[-90,-1,620],front:[560,0,40],side:[-90,-600,60]};
+  function view(k,instant){const p=VIEWS[k];goal={pos:new THREE.Vector3(...p),t:0};if(instant){cam.position.set(...p);goal=null}ctl.target.copy(CENTER)}
+  let goal=null;view('iso',true);
+  // lighting: studio key, rim, fill + hemisphere
+  scene.add(new THREE.HemisphereLight(0xf4f6ff,0x3a3330,0.55));
+  const key=new THREE.DirectionalLight(0xffffff,1.25);key.position.set(250,-300,520);key.castShadow=true;
+  key.shadow.mapSize.set(2048,2048);Object.assign(key.shadow.camera,{left:-320,right:320,top:320,bottom:-320,near:10,far:1500});key.shadow.bias=-0.0004;scene.add(key);
+  const rim=new THREE.DirectionalLight(0xffd9c2,0.6);rim.position.set(-400,350,200);scene.add(rim);
+  const fill=new THREE.DirectionalLight(0xc8dcff,0.35);fill.position.set(300,400,-100);scene.add(fill);
+  // floor with grid (arena floor at wheel contact)
+  const FLOOR=-31;
+  const ground=new THREE.Mesh(new THREE.PlaneGeometry(3000,3000),new THREE.ShadowMaterial({opacity:0.22}));ground.position.z=FLOOR;ground.receiveShadow=true;scene.add(ground);
+  const grid=new THREE.GridHelper(1000,40,0x8a8f93,0x8a8f93);grid.rotation.x=Math.PI/2;grid.position.set(-90,0,FLOOR+0.05);
+  grid.material.transparent=true;grid.material.opacity=0.18;scene.add(grid);
+  // materials
+  const M=(c,metal,rough,extra)=>new THREE.MeshStandardMaterial(Object.assign({color:new THREE.Color(c).convertSRGBToLinear(),metalness:metal,roughness:rough,transparent:true},extra||{}));
+  const MAT={bar:M(0x6f7b84,0.85,0.32),top_plate:M(0xa9b0b6,0.8,0.38),bottom_plate:M(0xa9b0b6,0.8,0.38),fork:M(0x8d969c,0.85,0.35),
+    frame:M(0xe0662a,0.0,0.62),hub_motor:M(0x23272b,0.6,0.35),battery:M(0x2f6fb0,0.1,0.5),wheel_0:M(0x1c1d1f,0.0,0.9),wheel_1:M(0x1c1d1f,0.0,0.9),
+    drive_0:M(0x9a9fa5,0.85,0.3),drive_1:M(0x9a9fa5,0.85,0.3),detail_bolts_top:M(0x2a2d31,0.9,0.3),detail_bolts_bottom:M(0x2a2d31,0.9,0.3),
+    detail_bolts_bar:M(0x2a2d31,0.9,0.3),detail_esc_0:M(0x3b6e4d,0.1,0.55),detail_esc_1:M(0x3b6e4d,0.1,0.55),detail_receiver:M(0x111214,0.1,0.6),detail_switch:M(0xc9a227,0.3,0.5)};
+  const LEG=[['Steel weapon','#6f7b84'],['Titanium plates','#a9b0b6'],['TPU frame','#e0662a'],['Hub motor','#23272b'],['Battery','#2f6fb0'],['ESCs','#3b6e4d']];
+  document.getElementById('legend').innerHTML=LEG.map(([n,c])=>'<div><s style="background:'+c+'"></s>'+n+'</div>').join('');
+  const EX={top_plate:[0,0,70],detail_bolts_top:[0,0,80],bottom_plate:[0,0,-60],detail_bolts_bottom:[0,0,-70],fork:[0,0,-95],
+    bar:[0,0,35],detail_bolts_bar:[0,0,45],battery:[0,0,110],detail_esc_0:[0,0,95],detail_esc_1:[0,0,95],detail_receiver:[0,0,120],detail_switch:[0,0,120],
+    wheel_0:[0,60,0],wheel_1:[0,-60,0],drive_0:[0,25,0],drive_1:[0,-25,0]};
+  const meshes={},pickables=[];let barGroup=null;
+  const edgeMat=new THREE.LineBasicMaterial({color:0x000000,transparent:true,opacity:0.28});
   fetch('model.json').then(r=>r.json()).then(data=>{
-    names.forEach(n=>{const p=data[n];if(!p)return;
-      const g=new THREE.BufferGeometry();
-      g.setAttribute('position',new THREE.Float32BufferAttribute(p.v,3));g.setIndex(p.f);g.computeVertexNormals();
-      const metal=n.includes('plate')||n==='bar'||n==='fork';
-      const m=new THREE.Mesh(g,new THREE.MeshStandardMaterial({color:C[n]||0x33383c,metalness:metal?0.6:0.1,roughness:0.5,transparent:true,flatShading:true}));
-      scene.add(m);meshes[n]=m});
+    Object.keys(data).forEach(n=>{const p=data[n];
+      let g=new THREE.BufferGeometry();g.setAttribute('position',new THREE.Float32BufferAttribute(p.v,3));g.setIndex(p.f);
+      const edges=new THREE.LineSegments(new THREE.EdgesGeometry(g,28),edgeMat);
+      g=g.toNonIndexed();g.computeVertexNormals();
+      const m=new THREE.Mesh(g,MAT[n]||M(0x444444,0.3,0.5));m.castShadow=true;m.receiveShadow=true;m.add(edges);m.userData=p;
+      const holder=new THREE.Group();holder.add(m);scene.add(holder);meshes[n]=holder;pickables.push(m)});
+    barGroup=new THREE.Group();['bar','detail_bolts_bar'].forEach(n=>{if(meshes[n]){barGroup.add(meshes[n].children[0])}});
+    meshes.bar.add(barGroup);
     status.textContent='';
   }).catch(()=>{status.textContent='3D model failed to load. The renders below show the model.'});
+  // bar sweep disc
+  const sweep=new THREE.Mesh(new THREE.RingGeometry(18.5,114.5,96),new THREE.MeshBasicMaterial({color:0xc2410c,transparent:true,opacity:0.16,side:THREE.DoubleSide,depthWrite:false}));
+  sweep.visible=false;scene.add(sweep);
+  const sweepEdge=new THREE.LineLoop(new THREE.BufferGeometry().setFromPoints(Array.from({length:128},(_,i)=>new THREE.Vector3(117.5*Math.cos(i/128*Math.PI*2),117.5*Math.sin(i/128*Math.PI*2),0))),new THREE.LineDashedMaterial({color:0xc2410c,dashSize:6,gapSize:4}));
+  sweepEdge.computeLineDistances();sweepEdge.visible=false;scene.add(sweepEdge);
   function size(){const w=stage.clientWidth,h=stage.clientHeight;renderer.setSize(w,h,false);cam.aspect=w/h;cam.updateProjectionMatrix()}
   addEventListener('resize',size);size();
+  // controls
   const reduce=matchMedia('(prefers-reduced-motion: reduce)').matches;
-  let spin=!reduce,explode=0,target=0;
-  const bs=document.getElementById('spin');bs.setAttribute('aria-pressed',spin);
-  bs.onclick=()=>{spin=!spin;bs.setAttribute('aria-pressed',spin)};
-  const bx=document.getElementById('xray');bx.onclick=()=>{const on=bx.getAttribute('aria-pressed')!=='true';bx.setAttribute('aria-pressed',on);if(meshes.top_plate)meshes.top_plate.material.opacity=on?0.25:1};
-  const be=document.getElementById('explode');be.onclick=()=>{const on=be.getAttribute('aria-pressed')!=='true';be.setAttribute('aria-pressed',on);target=on?1:0};
-  (function loop(){requestAnimationFrame(loop);
-    explode+=(target-explode)*0.1;
+  let spin=!reduce,explode=0,target=0,w=0;
+  const toggle=(id,fn)=>{const b=document.getElementById(id);b.onclick=()=>{const on=b.getAttribute('aria-pressed')!=='true';b.setAttribute('aria-pressed',on);fn(on)};return b};
+  toggle('spin',on=>spin=on).setAttribute('aria-pressed',spin);
+  toggle('xray',on=>{['top_plate','detail_bolts_top'].forEach(n=>{const m=meshes[n]&&meshes[n].children[0];if(m){m.material.opacity=on?0.18:1;m.material.depthWrite=!on}})});
+  toggle('explode',on=>{target=on?1:0;if(on&&!goal)goal={pos:cam.position.clone().sub(CENTER).multiplyScalar(1.3).add(CENTER)}});
+  toggle('sweep',on=>{sweep.visible=sweepEdge.visible=on});
+  document.querySelectorAll('[data-view]').forEach(b=>b.onclick=()=>view(b.dataset.view));
+  // hover/tap info
+  const ray=new THREE.Raycaster(),ptr=new THREE.Vector2();let hovered=null;
+  function pick(e){const r=renderer.domElement.getBoundingClientRect();ptr.set((e.clientX-r.left)/r.width*2-1,-(e.clientY-r.top)/r.height*2+1);
+    ray.setFromCamera(ptr,cam);const hit=ray.intersectObjects(pickables,false).find(h=>h.object.material.opacity>0.5);
+    if(hovered){hovered.material.emissive.setHex(0);hovered=null}
+    if(!hit){tip.hidden=true;return}
+    hovered=hit.object;hovered.material.emissive.setHex(0x331100);
+    const u=hovered.userData;tip.innerHTML='<b>'+u.name+'</b><span>'+u.mat+'</span>'+(u.mass?'<i>'+u.mass+'</i>':'');
+    tip.hidden=false;tip.style.left=Math.min(e.clientX-r.left+14,r.width-190)+'px';tip.style.top=Math.max(e.clientY-r.top-10,40)+'px'}
+  renderer.domElement.addEventListener('pointermove',pick);renderer.domElement.addEventListener('pointerleave',()=>{tip.hidden=true;if(hovered){hovered.material.emissive.setHex(0);hovered=null}});
+  ['pointerdown','wheel'].forEach(ev=>renderer.domElement.addEventListener(ev,()=>{goal=null},{passive:true}));
+  // spin-up model: first-order fit to the simulated curve (90% at 2.0 s), 10,979 rpm, I=0.001425 kg m^2
+  const WMAX=10979*2*Math.PI/60,TAU=2.0/2.303,I=0.001425;
+  const hr=document.getElementById('h-rpm'),hj=document.getElementById('h-j'),ht=document.getElementById('h-tip');
+  let last=performance.now();
+  (function loop(now){requestAnimationFrame(loop);const dt=Math.min(0.05,(now-last)/1000);last=now;
+    w+=((spin?WMAX:0)-w)*(1-Math.exp(-dt/(spin?TAU:1.6)));
+    if(barGroup)barGroup.rotation.z+=Math.min(w,60)*dt*0.9; // visual rate is capped so the bar stays readable
+    hr.textContent=Math.round(w*60/2/Math.PI).toLocaleString();hj.textContent=Math.round(0.5*I*w*w);ht.textContent=Math.round(w*0.1145);
+    explode+=(target-explode)*Math.min(1,dt*6);
     for(const n in meshes){const o=EX[n]||[0,0,0];meshes[n].position.set(o[0]*explode,o[1]*explode,o[2]*explode)}
-    if(spin&&meshes.bar)meshes.bar.rotation.z+=0.35;
-    ctl.update();renderer.render(scene,cam)})();
+    if(goal){cam.position.lerp(goal.pos,Math.min(1,dt*5));if(cam.position.distanceTo(goal.pos)<1)goal=null}
+    ctl.update();renderer.render(scene,cam)})(last);
 })();
 </script>
