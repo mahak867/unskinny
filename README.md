@@ -2,8 +2,9 @@
 
 **A 3 lb (1361 g) beetleweight combat robot with a horizontal bar spinner: designed in code, simulated and checked automatically.**
 
-**Live demo:** https://mahak867.github.io/unskinny/
-**Offline demo:** [`unskinny-mk2.html`](unskinny-mk2.html). Download it and open it in any browser; no install or internet needed.
+**Live demo:** https://mahak867.github.io/unskinny/ (GitHub Pages) · mirror: https://raw.githack.com/mahak867/unskinny/main/unskinny-mk2.html
+
+**Offline demo:** open [`unskinny-mk2.html`](unskinny-mk2.html), click the **Download raw file** button (↓ icon, top right of the file view), then double-click the saved file. GitHub can't display a 2.5 MB HTML file in the browser, so clicking it on GitHub only shows a "too big to display" message.
 
 ![Isometric render](out/render_iso.png)
 
