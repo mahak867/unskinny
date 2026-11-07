@@ -1,0 +1,18 @@
+{
+  "total_mass_g": 1327.7,
+  "weight_margin_g": 33.3,
+  "weapon_inertia_kgm2": 0.0014245186077793813,
+  "weapon_rpm": 10979,
+  "spinup_90pct_s": 2.0,
+  "weapon_energy_J": 941,
+  "tip_speed_mps": 131.6,
+  "bar_peak_stress_mpa": 204.0,
+  "bar_safety_factor": 6.1,
+  "bite_mm_at_3mps": 8.2,
+  "drive_top_speed_mps": 2.69,
+  "drive_accel_mps2": 8.8,
+  "drive_traction_limited": true,
+  "gyro_tilt_ratio_full_turn": 10.8,
+  "match_energy_wh": 7.4,
+  "battery_usable_wh": 7.7
+}

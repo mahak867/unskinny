@@ -1,0 +1,10 @@
+{
+  "masses_g": {
+    "bar": 304.5,
+    "top_plate": 127.6,
+    "bottom_plate": 127.6,
+    "frame": 166.0,
+    "fork": 17.0
+  },
+  "bar_Izz_kgm2": 0.0013945186077793813
+}
