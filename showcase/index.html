@@ -81,6 +81,27 @@ figure.chart figcaption{color:var(--muted)}
 .lbtn{font:500 .8rem var(--mono);background:transparent;color:var(--muted);border:1px solid var(--line);padding:6px 10px;cursor:pointer}
 .lbtn:focus-visible,.sl input:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
 .kpi b.chg{color:var(--accent)}
+.fight{display:grid;grid-template-columns:minmax(240px,320px) 1fr;gap:18px;align-items:start}
+@media (max-width:760px){.fight{grid-template-columns:1fr}}
+.fctl{display:grid;gap:12px;background:var(--panel);border:1px solid var(--line);padding:14px;min-width:0}
+.fctl select{font:inherit;padding:6px;background:var(--bg);color:var(--fg);border:1px solid var(--line)}
+.fctl .kpi{grid-template-columns:1fr 1fr}
+.fbtn{font:600 .9rem var(--display);letter-spacing:.06em;background:var(--accent);color:#fff;border:0;padding:10px;cursor:pointer}
+.fbtn:focus-visible{outline:2px solid var(--fg);outline-offset:2px}
+.verdict{font-size:.88rem;margin:0}
+#arena{width:100%;height:460px;background:#202426;border:1px solid var(--line);display:block}
+#slegend{position:absolute;right:12px;bottom:56px;background:var(--panel);border:1px solid var(--line);padding:8px 10px;font:500 .72rem var(--mono);color:var(--muted);display:grid;gap:4px;width:220px}
+#slegend b{color:var(--fg)}
+.sgrad{height:10px;background:linear-gradient(90deg,#2c3e9e,#1fa2c9,#4cc26a,#f2d43c,#e8532a,#b0172a)}
+.sticks{display:flex;justify-content:space-between}
+.fstage{display:grid;gap:10px;min-width:0}
+.fbtns{display:grid;grid-template-columns:1fr auto;gap:8px}
+.lbtn[aria-pressed="true"]{background:var(--accent);color:#fff;border-color:var(--accent)}
+.flog{list-style:none;margin:0;padding:0;font:400 .8rem/1.5 var(--mono);display:grid;gap:2px;max-height:220px;overflow:auto}
+.flog li{background:var(--panel);border:1px solid var(--line);padding:4px 8px;border-left:3px solid var(--line)}
+.flog li span{color:var(--muted);margin-right:8px}
+.flog li.me{border-left-color:var(--accent)} .flog li.op{border-left-color:#3d6fa8} .flog li.ko{border-left-color:#c0392b;font-weight:600}
+.flog li.clash{border-left-color:#c9a227} .flog li.wall{border-left-color:#888}
 </style>
 
 <main>
@@ -95,11 +116,13 @@ figure.chart figcaption{color:var(--muted)}
     <div class="hud"><div>WEAPON <b id="h-rpm">0</b> rpm</div><div>ENERGY <b id="h-j">0</b> J</div><div>TIP <b id="h-tip">0</b> m/s</div></div>
     <div class="legend" id="legend"></div>
     <div id="tip" hidden></div>
+    <div id="slegend" hidden><span>Bar stress at <b id="s-rpm"></b> rpm</span><div class="sgrad"></div><div class="sticks"><span>0</span><span id="s-mid"></span><span id="s-max"></span></div><span>Safety factor at peak: <b id="s-sf"></b></span></div>
     <div class="ctrl">
       <button id="spin" aria-pressed="true" type="button">Spin weapon</button>
       <button id="xray" aria-pressed="false" type="button">X-ray top plate</button>
       <button id="explode" aria-pressed="false" type="button">Exploded view</button>
       <button id="sweep" aria-pressed="false" type="button">Show bar sweep</button>
+      <button id="stress" aria-pressed="false" type="button">Stress map</button>
       <span class="sep"></span>
       <button data-view="iso" type="button">Iso</button>
       <button data-view="top" type="button">Top</button>
@@ -125,6 +148,30 @@ figure.chart figcaption{color:var(--muted)}
     </div>
   </div>
   <p style="text-align:right"><button id="reset-lab" type="button" class="lbtn">Reset to built design</button></p>
+</section>
+
+<section>
+  <h2>Fight simulator</h2>
+  <p>A real-time 2D physics match in an 8 ft (2.44 m) arena, using the weapon energy, spin-up and mass from the design lab. Both robots drive with traction limits and an AI driver. Hits depend on tooth bite and the angle of contact, carry recoil, and drain the weapon, which then spins back up. Damage builds up against each robot's armor rating. It's a simplified model: use it to compare designs, not to predict a real fight.</p>
+  <div class="fight">
+    <div class="fctl">
+      <div class="sl"><label for="opp">Opponent</label>
+        <select id="opp">
+          <option value="box" selected>Box / pusher, 1.36 kg</option>
+          <option value="wedge">Wedge, 1.36 kg</option>
+          <option value="vert">Vertical spinner, ~350 J</option>
+          <option value="drum">Drum spinner, ~280 J</option>
+          <option value="horiz">Horizontal spinner, ~420 J</option>
+        </select></div>
+      <div class="sl"><label for="armor">Opponent armor<b id="armor-v"></b></label><input type="range" id="armor" min="1" max="3" step="1" value="2"></div>
+      <div class="sl"><label for="skill">Opponent driver<b id="skill-v"></b></label><input type="range" id="skill" min="1" max="3" step="1" value="2"></div>
+      <div class="fbtns"><button id="fight" type="button" class="fbtn">Start match</button><button id="slow" type="button" class="lbtn" aria-pressed="false">Slow motion</button></div>
+      <div class="kpi" id="fk"></div>
+      <p id="verdict" class="verdict"></p>
+    </div>
+    <div class="fstage"><canvas id="arena" height="460"></canvas>
+      <ol id="flog" class="flog" aria-live="polite"></ol></div>
+  </div>
 </section>
 
 <section>
@@ -238,7 +285,7 @@ figure.chart figcaption{color:var(--muted)}
       const m=new THREE.Mesh(g,MAT[n]||M(0x444444,0.3,0.5));m.castShadow=true;m.receiveShadow=true;m.add(edges);m.userData=p;
       const holder=new THREE.Group();holder.add(m);scene.add(holder);meshes[n]=holder;pickables.push(m)});
     barGroup=new THREE.Group();['bar','detail_bolts_bar'].forEach(n=>{if(meshes[n]){barGroup.add(meshes[n].children[0])}});
-    meshes.bar.add(barGroup);
+    meshes.bar.add(barGroup);window.MK2BAR=barGroup.children.find(c=>c.userData&&c.userData.name==='Weapon bar');
     status.textContent='';
   }).catch(()=>{status.textContent='3D model failed to load. The renders below show the model.'});
   // bar sweep disc
@@ -359,7 +406,199 @@ figure.chart figcaption{color:var(--muted)}
       ['Bite depth for a clean hit',m.bite.toFixed(1)+' mm','≥ 5 mm',m.bite>=5,'live']];
     document.querySelector('#checks tbody').innerHTML=rows.map(([n,v,l,ok,src])=>'<tr><td>'+n+(src==='cad'?' <span style="color:var(--muted)">(CAD)</span>':'')+'</td><td class="v">'+v+'</td><td class="v">'+l+'</td><td><span class="pill '+(ok?'pass':'fail')+'">'+(ok?'PASS':'FAIL')+'</span></td></tr>').join('');
   }
+  window.MK2={current:()=>model(P),onchange:null};const _run=run;run=function(){_run();window.MK2.onchange&&window.MK2.onchange()};
   addEventListener('resize',run);matchMedia('(prefers-color-scheme: dark)').addEventListener('change',run);
   document.fonts&&document.fonts.ready.then(run);run();
+})();
+</script>
+<script>
+(function(){
+// ---------- Robot fight physics (SI units). Mk II data come from the design lab via window.MK2 ----------
+const G=9.81,ARENA=2.44,MU=0.9,DT=1/240;
+const OPP={box:{n:'Box',faces:{front:0.85,side:0.85},w:null},wedge:{n:'Wedge',faces:{front:0.35,side:0.8},w:null,wedge:true},
+  vert:{n:'Vertical spinner',faces:{front:0.6,side:0.8},w:{E:350,type:'vert',reach:0.13,I:0.0011}},
+  drum:{n:'Drum',faces:{front:0.55,side:0.8},w:{E:280,type:'drum',reach:0.11,I:0.0006}},
+  horiz:{n:'Horizontal spinner',faces:{front:0.65,side:0.8},w:{E:420,type:'horiz',reach:0.11,I:0.0013}}};
+const ARM={1:['Thin aluminum',160],2:['UHMW + titanium',300],3:['Hardened steel',520]};
+const SKILL={1:['Novice',0.55,0.35],2:['Club',0.8,0.15],3:['Champion',1.0,0.04]};
+const $=id=>document.getElementById(id),cv=$('arena'),log=$('flog');
+let sim=null,raf=null,slow=false;
+const rnd=(a,b)=>a+Math.random()*(b-a);
+function body(o){return Object.assign({vx:0,vy:0,w:0,hp:100,air:0,lift:0,dmgFlash:0},o)}
+function setup(){
+  const m=window.MK2.current(),o=OPP[$('opp').value],sk=SKILL[$('skill').value];
+  const a0=rnd(-0.4,0.4);
+  const me=body({name:'Unskinny Mk II',x:-0.75,y:rnd(-0.5,0.5),th:a0,m:m.mass/1000,I:0.0075,hl:0.13,hw:0.082,r:0.12,
+    vmax:m.drive,armor:340,col:'#a9b0b6',wI:m.I,wMax:m.wf,tau:(m.t90||2)/2.303,ww:0,wpnOff:0.10,R:0.1145,me:true});
+  const op=body({name:o.n,x:0.75,y:rnd(-0.5,0.5),th:Math.PI+rnd(-0.4,0.4),m:1.36,I:0.008,hl:0.1,hw:0.09,r:0.12,
+    vmax:3.0*sk[1],armor:ARM[$('armor').value][1],col:'#3d6fa8',def:o,skill:sk,ww:0});
+  if(o.w){op.wI=o.w.I;op.wMax=Math.sqrt(2*o.w.E/o.w.I);op.tau=1.2;op.R=o.w.reach;op.wpnOff=0.1}
+  return {t:0,me,op,o,ev:[],hits:0,Etot:0,big:0,over:false,parts:[],cool:{me:0,op:0,clash:0},armorName:ARM[$('armor').value][0]};
+}
+// world <-> local helpers
+function local(b,x,y){const c=Math.cos(b.th),s=Math.sin(b.th),dx=x-b.x,dy=y-b.y;return [dx*c+dy*s,-dx*s+dy*c]}
+function wpos(b){return [b.x+Math.cos(b.th)*b.wpnOff,b.y+Math.sin(b.th)*b.wpnOff]}
+function closestOnBox(b,x,y){const[lx,ly]=local(b,x,y),cx=Math.max(-b.hl,Math.min(b.hl,lx)),cy=Math.max(-b.hw,Math.min(b.hw,ly));
+  const c=Math.cos(b.th),s=Math.sin(b.th);return {x:b.x+cx*c-cy*s,y:b.y+cx*s+cy*c,face:Math.abs(cx)>=b.hl-1e-4&&cx>0?'front':'side'}}
+function impulse(b,J,jx,jy,px,py){b.vx+=J*jx/b.m;b.vy+=J*jy/b.m;b.w+=((px-b.x)*J*jy-(py-b.y)*J*jx)/b.I}
+function event(S,txt,cls){S.ev.unshift({t:S.t,txt,cls});const li=document.createElement('li');li.className=cls||'';
+  li.innerHTML='<span>'+S.t.toFixed(1)+'s</span>'+txt;log.prepend(li);while(log.children.length>14)log.lastChild.remove()}
+function sparks(S,x,y,n,col){for(let i=0;i<n;i++){const a=rnd(0,7),v=rnd(1,6);S.parts.push({x,y,vx:Math.cos(a)*v,vy:Math.sin(a)*v,life:rnd(.2,.6),col})}}
+// a spinner (att) striking a target body (tgt)
+function strike(S,att,tgt,key){
+  if(S.cool[key]>0||att.ww<80||att.air>0)return;
+  const[wx,wy]=wpos(att),c=closestOnBox(tgt,wx,wy),dx=c.x-wx,dy=c.y-wy,d=Math.hypot(dx,dy);
+  if(d>att.R||d<1e-6)return;
+  const nx=dx/d,ny=dy/d,vc=Math.max(0,(att.vx-tgt.vx)*nx+(att.vy-tgt.vy)*ny)+0.25;
+  const teeth=2,bite=vc/(teeth*att.ww/(2*Math.PI));                 // metres of tooth engagement
+  const engage=Math.min(1,bite/0.010)*0.75+0.25;
+  const faceK=tgt.def?tgt.def.faces[c.face]:0.8;
+  const E=0.5*att.wI*att.ww*att.ww,Ed=E*0.55*engage*faceK;          // energy delivered this hit
+  // tangent of the tooth (bar spins CCW for Mk II, CW for opponent) blended with radial push
+  const sgn=att.me?1:-1,tx=-ny*sgn,ty=nx*sgn,jx=(tx*0.6+nx*0.8),jy=(ty*0.6+ny*0.8),jl=Math.hypot(jx,jy);
+  const mEff=att.m*tgt.m/(att.m+tgt.m),J=Math.sqrt(2*Ed*0.35*mEff);
+  impulse(tgt,J,jx/jl,jy/jl,c.x,c.y);impulse(att,-J*0.85,jx/jl,jy/jl,wx+nx*att.R,wy+ny*att.R);
+  att.ww=Math.sqrt(Math.max(0,2*(E-Ed/0.9)/att.wI));
+  const deform=Ed*0.6,dmg=Math.max(0,deform-tgt.armor*0.25)/tgt.armor*38;tgt.hp=Math.max(0,tgt.hp-dmg);tgt.dmgFlash=0.25;
+  if(att.def&&att.def.w&&att.def.w.type!=='horiz'&&Ed>60){tgt.air=Math.min(0.9,Math.sqrt(2*G*Math.min(1.2,Ed/(tgt.m*G)*0.25))/G*2);}
+  S.cool[key]=Math.PI/att.ww;  // next tooth arrives after half a revolution
+  sparks(S,c.x,c.y,Math.min(40,6+Ed/15),att.me?'#ffd27a':'#9ec0e6');
+  if(att.me){S.hits++;S.Etot+=Ed;S.big=Math.max(S.big,Ed)}
+  const what=bite<0.004?'glancing ':'';
+  event(S,'<b>'+(att.me?'Mk II':S.o.n)+'</b> '+what+'hit: '+Math.round(Ed)+' J, bite '+(bite*1000).toFixed(1)+' mm, '+c.face+(dmg>0.5?', '+dmg.toFixed(0)+'% damage':'')+(tgt.air>0&&!att.me?', <b>launched</b>':''),att.me?'me':'op');
+  if(tgt.hp<=0&&!S.over){S.over=true;event(S,'<b>Knockout.</b> '+tgt.name+' is disabled.','ko')}
+}
+function drive(b,tgt,dt,S){
+  // AI: aim weapon side at target, lead the target slightly
+  const lead=0.15,tx=tgt.x+tgt.vx*lead,ty=tgt.y+tgt.vy*lead;
+  let want=Math.atan2(ty-b.y,tx-b.x);
+  if(b.skill)want+=(Math.sin(S.t*1.7+3)*b.skill[2]*3);
+  let err=Math.atan2(Math.sin(want-b.th),Math.cos(want-b.th));
+  if(b.me&&b.ww<0.6*b.wMax&&Math.hypot(tgt.x-b.x,tgt.y-b.y)<0.6){err=Math.atan2(Math.sin(want+Math.PI-b.th),Math.cos(want+Math.PI-b.th))*0.4;} // back off while spinning up
+  const grip=b.air>0?0:(b.lift>0?0.45:1),Fmax=MU*b.m*G*grip;
+  // turning: torque limited by traction and track width
+  const yawCmd=Math.max(-7,Math.min(7,err*9));b.w+=Math.max(-1,Math.min(1,(yawCmd-b.w)*0.5))*Fmax*0.07*2/b.I*dt;
+  const fwd=Math.cos(err)>0.6?1:0.25,vx=Math.cos(b.th),vy=Math.sin(b.th),vf=b.vx*vx+b.vy*vy;
+  const thrust=Math.max(-Fmax,Math.min(Fmax,(fwd*b.vmax-vf)*b.m*8));b.vx+=thrust/b.m*vx*dt;b.vy+=thrust/b.m*vy*dt;
+  // sideways tyre friction
+  const lx=-vy,ly=vx,vs=b.vx*lx+b.vy*ly,fs=Math.min(Math.abs(vs),Fmax/b.m*dt)*Math.sign(vs);b.vx-=fs*lx;b.vy-=fs*ly;
+  b.w*=1-Math.min(1,grip*6*dt);
+  // gyroscopic wheel lift on Mk II when turning fast with the weapon up
+  if(b.wI){const ratio=b.wI*b.ww*Math.abs(b.w)/(b.m*G*0.07);b.lift=ratio>1?0.1:Math.max(0,b.lift-dt)}
+}
+function step(S,dt){
+  const{me,op}=S;S.t+=dt;for(const k in S.cool)S.cool[k]=Math.max(0,S.cool[k]-dt);
+  for(const b of [me,op]){if(b.wI)b.ww+=(b.wMax-b.ww)*(1-Math.exp(-dt/b.tau));if(b.hp<=0){b.ww*=1-dt*2}
+    if(b.hp>0)drive(b,b===me?op:me,dt,S);else{b.vx*=1-dt*2;b.vy*=1-dt*2;b.w*=1-dt*3}
+    b.x+=b.vx*dt;b.y+=b.vy*dt;b.th+=b.w*dt;b.air=Math.max(0,b.air-dt);b.dmgFlash=Math.max(0,b.dmgFlash-dt);
+    const L=ARENA/2-b.r;for(const ax of ['x','y']){const v='v'+ax;if(Math.abs(b[ax])>L){const sp=Math.abs(b[v]);b[ax]=Math.sign(b[ax])*L;b[v]*=-0.35;
+      if(sp>3.5){const dm=(sp-3.5)*3;b.hp=Math.max(0,b.hp-dm);event(S,'<b>'+(b.me?'Mk II':S.o.n)+'</b> slams the wall at '+sp.toFixed(1)+' m/s'+(dm>0.5?', '+dm.toFixed(0)+'% damage':''),'wall');sparks(S,b.x,b.y,10,'#c9a227')}}}}
+  // weapon-to-weapon clash between two horizontal weapons
+  if(op.def.w&&op.def.w.type==='horiz'&&S.cool.clash<=0){const[a,b2]=wpos(me),[c,d]=wpos(op);if(Math.hypot(a-c,b2-d)<me.R+op.R){
+    const E1=0.5*me.wI*me.ww*me.ww,E2=0.5*op.wI*op.ww*op.ww,Ex=Math.min(E1,E2)*0.6,nx=(a-c)/Math.hypot(a-c,b2-d),ny=(b2-d)/Math.hypot(a-c,b2-d);
+    const J=Math.sqrt(2*Ex*0.5*me.m*op.m/(me.m+op.m));impulse(me,J,nx,ny,a,b2);impulse(op,-J,nx,ny,c,d);
+    me.ww=Math.sqrt(Math.max(0,2*(E1-Ex)/me.wI));op.ww=Math.sqrt(Math.max(0,2*(E2-Ex)/op.wI));S.cool.clash=0.3;
+    sparks(S,(a+c)/2,(b2+d)/2,40,'#fff2b0');event(S,'<b>Weapon clash</b>: '+Math.round(Ex)+' J each way, both bots thrown apart','clash')}}
+  if(!S.over){strike(S,me,op,'me');if(op.wI)strike(S,op,me,'op');
+    if(me.hp<=0&&!S.over){S.over=true;event(S,'<b>Knockout.</b> Mk II is disabled.','ko')}}
+  // body-body push contact
+  const dx=op.x-me.x,dy=op.y-me.y,dd=Math.hypot(dx,dy),mind=0.15;if(dd<mind&&dd>1e-6){const nx=dx/dd,ny=dy/dd,pen=mind-dd;
+    me.x-=nx*pen/2;me.y-=ny*pen/2;op.x+=nx*pen/2;op.y+=ny*pen/2;const rv=(op.vx-me.vx)*nx+(op.vy-me.vy)*ny;if(rv<0){const j=-(1.2)*rv/(1/me.m+1/op.m);
+    me.vx-=j*nx/me.m;me.vy-=j*ny/me.m;op.vx+=j*nx/op.m;op.vy+=j*ny/op.m;
+    if(S.o.wedge){const[f]=local(op,me.x,me.y);if(f>0)me.lift=Math.max(me.lift,0.4)}}}
+  for(const p of S.parts){p.x+=p.vx*dt;p.y+=p.vy*dt;p.vx*=0.97;p.vy*=0.97;p.life-=dt}S.parts=S.parts.filter(p=>p.life>0);
+  if(S.t>=30&&!S.over){S.over=true;event(S,'<b>Time.</b> Judges decision on damage.','ko')}
+}
+// ---------- rendering ----------
+const MK=[[0.13,-0.026],[0.13,0.026],[0.06,0.032],[-0.03,0.082],[-0.13,0.082],[-0.13,-0.082],[-0.03,-0.082],[0.06,-0.032]];
+function draw(S){
+  const dpr=Math.min(2,devicePixelRatio||1),W=cv.clientWidth,H=460;if(cv.width!==Math.round(W*dpr)){cv.width=Math.round(W*dpr);cv.height=H*dpr}
+  const g=cv.getContext('2d');g.setTransform(dpr,0,0,dpr,0,0);g.fillStyle='#1b1f21';g.fillRect(0,0,W,H);
+  const sc=Math.min(W,H-40)/ARENA*0.96,ox=W/2,oy=(H+30)/2;const P=(x,y)=>[ox+x*sc,oy-y*sc];
+  g.fillStyle='#262b2e';const[a1,b1]=P(-ARENA/2,ARENA/2);g.fillRect(a1,b1,ARENA*sc,ARENA*sc);
+  g.strokeStyle='rgba(255,255,255,.05)';for(let i=-4;i<=4;i++){const[x1,y1]=P(i*0.3,-ARENA/2),[x2,y2]=P(i*0.3,ARENA/2);g.beginPath();g.moveTo(x1,y1);g.lineTo(x2,y2);g.stroke();const[x3,y3]=P(-ARENA/2,i*0.3),[x4,y4]=P(ARENA/2,i*0.3);g.beginPath();g.moveTo(x3,y3);g.lineTo(x4,y4);g.stroke()}
+  g.strokeStyle='#c9a227';g.lineWidth=4;g.strokeRect(a1,b1,ARENA*sc,ARENA*sc);
+  g.setLineDash([6,6]);g.lineWidth=1;g.strokeStyle='rgba(201,162,39,.35)';g.strokeRect(a1+0.3*sc,b1+0.3*sc,(ARENA-0.6)*sc,(ARENA-0.6)*sc);g.setLineDash([]);
+  if(!S)return;
+  function bot(b,shape){const[x,y]=P(b.x,b.y),hop=b.air>0?1+b.air*0.5:1;
+    g.save();g.translate(x,y);g.rotate(-b.th);
+    g.fillStyle='rgba(0,0,0,.35)';g.beginPath();g.ellipse(4,4,b.hl*sc*hop,b.hw*sc*hop,0,0,7);g.fill();g.scale(hop,hop);
+    shape(b);if(b.dmgFlash>0){g.globalAlpha=b.dmgFlash*3;g.fillStyle='#ff5a36';g.fillRect(-b.hl*sc,-b.hw*sc,2*b.hl*sc,2*b.hw*sc);g.globalAlpha=1}
+    if(b.lift>0&&b.me){g.strokeStyle='#ffd27a';g.setLineDash([3,3]);g.strokeRect(-b.hl*sc,-b.hw*sc,2*b.hl*sc,2*b.hw*sc);g.setLineDash([])}
+    g.restore()}
+  bot(S.op,b=>{const t=S.o.w&&S.o.w.type,L=b.hl*sc,Wd=b.hw*sc;g.fillStyle=b.hp>0?'#3d6fa8':'#2a3b52';g.strokeStyle='#9ec0e6';g.lineWidth=1.5;
+    if(S.o.wedge){g.beginPath();g.moveTo(-L,-Wd);g.lineTo(L*0.2,-Wd);g.lineTo(L,-Wd*0.8);g.lineTo(L,Wd*0.8);g.lineTo(L*0.2,Wd);g.lineTo(-L,Wd);g.closePath();g.fill();g.stroke();
+      const gr=g.createLinearGradient(L*0.2,0,L,0);gr.addColorStop(0,'#5d88b8');gr.addColorStop(1,'#cfe0f2');g.fillStyle=gr;g.fillRect(L*0.2,-Wd*0.8,L*0.8,Wd*1.6)}
+    else{g.fillRect(-L,-Wd,2*L,2*Wd);g.strokeRect(-L,-Wd,2*L,2*Wd)}
+    g.fillStyle='#111';g.fillRect(-L*0.6,-Wd-4,L*0.6,5);g.fillRect(-L*0.6,Wd-1,L*0.6,5);
+    if(t){g.save();g.translate(b.wpnOff*sc,0);const sp=-S.t*Math.min(b.ww,60);
+      if(t==='horiz'){g.rotate(sp);g.fillStyle='rgba(158,192,230,.15)';g.beginPath();g.arc(0,0,b.R*sc,0,7);g.fill();g.fillStyle='#cfd9e3';g.fillRect(-b.R*sc,-5,2*b.R*sc,10)}
+      else{const blur=Math.min(1,b.ww/b.wMax);g.fillStyle='rgba(207,217,227,'+(0.5+0.5*(1-blur))+')';g.fillRect(-(t==='drum'?10:6),-b.hw*sc*0.9,(t==='drum'?20:12),b.hw*sc*1.8)}
+      g.restore()}});
+  bot(S.me,b=>{g.fillStyle=b.hp>0?'#a9b0b6':'#6b7076';g.beginPath();MK.forEach(([x,y],i)=>{const X=x*sc,Y=y*sc;i?g.lineTo(X,Y):g.moveTo(X,Y)});g.closePath();g.fill();
+    g.fillStyle='#e0662a';g.fillRect(-0.125*sc,-0.072*sc,0.07*sc,0.144*sc);g.fillStyle='#111';g.fillRect(-0.12*sc,-0.092*sc,0.06*sc,0.012*sc);g.fillRect(-0.12*sc,0.08*sc,0.06*sc,0.012*sc);
+    g.save();g.translate(b.wpnOff*sc,0);const fr=b.ww/b.wMax;g.fillStyle='rgba(224,102,42,'+(0.08+0.18*fr)+')';g.beginPath();g.arc(0,0,b.R*sc,0,7);g.fill();
+    g.rotate(-S.t*Math.min(b.ww,55));g.fillStyle='#d6dbe0';g.fillRect(-b.R*sc,-0.019*sc,2*b.R*sc,0.038*sc);g.fillStyle='#23272b';g.beginPath();g.arc(0,0,0.018*sc,0,7);g.fill();g.restore()});
+  for(const p of S.parts){const[x,y]=P(p.x,p.y);g.fillStyle=p.col;g.globalAlpha=Math.min(1,p.life*3);g.fillRect(x-1.5,y-1.5,3,3)}g.globalAlpha=1;
+  // HUD
+  function hud(b,x,align,col){g.textAlign=align;g.fillStyle=col;g.font='600 13px "Chakra Petch",sans-serif';g.fillText(b.name.toUpperCase(),x,18);
+    const bw=150,bx=align==='left'?x:x-bw;g.fillStyle='#333';g.fillRect(bx,24,bw,7);g.fillStyle=b.hp>50?'#4cc26a':b.hp>20?'#f2d43c':'#e8532a';g.fillRect(align==='left'?bx:bx+bw*(1-b.hp/100),24,bw*b.hp/100,7);
+    if(b.wI){g.font='11px "IBM Plex Mono",monospace';g.fillStyle='#aab3b0';g.fillText(Math.round(b.ww*60/2/Math.PI).toLocaleString()+' rpm',x,46)}}
+  hud(S.me,12,'left','#e5eae8');hud(S.op,W-12,'right','#9ec0e6');
+  g.textAlign='center';g.fillStyle='#e5eae8';g.font='600 16px "IBM Plex Mono",monospace';g.fillText((Math.max(0,30-S.t)).toFixed(1),W/2,22);g.textAlign='left';
+  if(S.over&&S.done){g.fillStyle='rgba(0,0,0,.55)';g.fillRect(0,H/2-34,W,58);g.fillStyle='#ffd27a';g.textAlign='center';g.font='700 24px "Chakra Petch",sans-serif';g.fillText(S.result,W/2,H/2+4);g.textAlign='left'}
+}
+function finish(S){const{me,op}=S;S.done=true;
+  S.result=op.hp<=0?'MK II WINS BY KO':me.hp<=0?S.o.n.toUpperCase()+' WINS BY KO':(op.hp<me.hp?'MK II WINS ON DAMAGE':op.hp>me.hp?S.o.n.toUpperCase()+' WINS ON DAMAGE':'DRAW');
+  $('verdict').textContent=S.result.charAt(0)+S.result.slice(1).toLowerCase()+'. Opponent armor: '+S.armorName+'. Mk II landed '+S.hits+' hits for '+Math.round(S.Etot)+' J total.';$('fight').textContent='Rematch'}
+function stats(S){const m=S||{hits:0,Etot:0,big:0,me:{hp:100},op:{hp:100},t:0};
+  $('fk').innerHTML='<div><b>'+m.hits+'</b><span>Mk II hits landed</span></div><div><b>'+Math.round(m.big)+' J</b><span>biggest hit</span></div>'+
+   '<div><b>'+Math.round(m.Etot)+' J</b><span>total delivered</span></div><div><b>'+Math.round(m.op.hp)+'% / '+Math.round(m.me.hp)+'%</b><span>opponent / Mk II health</span></div>'}
+function start(){cancelAnimationFrame(raf);log.innerHTML='';sim=setup();$('verdict').textContent='';$('fight').textContent='Restart';
+  event(sim,'Match start. Mk II spinning up ('+(sim.me.tau*2.303).toFixed(1)+' s to 90%).','');
+  let last=performance.now(),acc=0,endT=null;
+  (function loop(now){const dt=Math.min(0.05,(now-last)/1000)*(slow?0.25:1);last=now;acc+=dt;
+    while(acc>DT){step(sim,DT);acc-=DT}
+    if(sim.over&&endT===null)endT=sim.t;
+    if(endT!==null&&sim.t-endT>1.2&&!sim.done)finish(sim);
+    draw(sim);stats(sim);if(!sim.done||sim.parts.length)raf=requestAnimationFrame(loop)})(last)}
+const lbl=()=>{$('armor-v').textContent=ARM[$('armor').value][0];$('skill-v').textContent=SKILL[$('skill').value][0]};
+$('armor').oninput=lbl;$('skill').oninput=lbl;$('opp').onchange=()=>{};
+$('fight').onclick=start;$('slow').onclick=()=>{slow=!slow;$('slow').setAttribute('aria-pressed',slow)};
+addEventListener('resize',()=>{if(!sim||sim.done)draw(sim)});
+window.MK2FIGHT={setup,step,DT};
+lbl();stats(null);draw(null);
+if(matchMedia('(prefers-reduced-motion: reduce)').matches)$('slow').click();
+})();
+</script>
+<script>
+(function(){
+  const btn=document.getElementById('stress'),leg=document.getElementById('slegend');if(!btn)return;
+  const RAMP=[[0,[44,62,158]],[.2,[31,162,201]],[.4,[76,194,106]],[.6,[242,212,60]],[.8,[232,83,42]],[1,[176,23,42]]];
+  function ramp(x){x=Math.max(0,Math.min(1,x));for(let i=1;i<RAMP.length;i++)if(x<=RAMP[i][0]){const[a,ca]=RAMP[i-1],[b,cb]=RAMP[i],f=(x-a)/(b-a);return ca.map((c,j)=>(c+(cb[j]-c)*f)/255)}return RAMP[5][1].map(c=>c/255)}
+  // distance (mm) from a point to the nearest hole edge in the bar
+  function holeDist(x,y){let d=Math.hypot(x,y)-4;
+    for(const a of [45,135,225,315]){const r=a*Math.PI/180;d=Math.min(d,Math.hypot(x-15*Math.cos(r),y-15*Math.sin(r))-2.65)}
+    for(const c of [42,-42]){const cx=Math.max(c-8,Math.min(c+8,x));d=Math.min(d,Math.hypot(x-cx,y)-6)}
+    return Math.max(0,d)}
+  let on=false,orig=null,dirty=true;
+  function apply(){const bar=window.MK2BAR;if(!bar||!window.MK2)return false;
+    const m=window.MK2.current(),w=m.wf,R=229/2/1000,rho=7850,g=bar.geometry,pos=g.attributes.position;
+    const sig=new Float32Array(pos.count);let max=0;
+    for(let i=0;i<pos.count;i++){const x=pos.getX(i),y=pos.getY(i),r=Math.min(R,Math.hypot(x,y)/1000);
+      const base=rho*w*w*(R*R-r*r)/2/1e6;                 // MPa, rotating-bar tensile stress
+      const kt=1+2*Math.exp(-holeDist(x,y)/2.5);          // stress concentration at hole edges
+      sig[i]=base*kt;if(sig[i]>max)max=sig[i]}
+    const col=new Float32Array(pos.count*3);
+    for(let i=0;i<pos.count;i++){const c=ramp(sig[i]/max);const l=c.map(v=>Math.pow(v,2.2));col.set(l,i*3)}
+    g.setAttribute('color',new THREE.Float32BufferAttribute(col,3));
+    if(!orig)orig={c:bar.material.color.clone(),m:bar.material.metalness};
+    bar.material.vertexColors=true;bar.material.color.setRGB(1,1,1);bar.material.metalness=0.1;bar.material.needsUpdate=true;
+    document.getElementById('s-rpm').textContent=Math.round(m.rpm).toLocaleString();
+    document.getElementById('s-max').textContent=Math.round(max)+' MPa';document.getElementById('s-mid').textContent=Math.round(max/2);
+    document.getElementById('s-sf').textContent=(1250/max).toFixed(1)+'× (AR500 yield 1250 MPa)';return true}
+  function clear(){const bar=window.MK2BAR;if(!bar||!orig)return;bar.material.vertexColors=false;bar.material.color.copy(orig.c);bar.material.metalness=orig.m;bar.material.needsUpdate=true}
+  btn.onclick=()=>{on=!on;btn.setAttribute('aria-pressed',on);leg.hidden=!on;if(on){if(!apply())setTimeout(()=>on&&apply(),800)}else clear()};
+  const prev=window.MK2&&window.MK2.onchange;if(window.MK2)window.MK2.onchange=()=>{prev&&prev();if(on)apply()};
 })();
 </script>

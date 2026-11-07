@@ -1,5 +1,7 @@
 # Unskinny Mk II: 3 lb horizontal bar spinner
 
+**Interactive demo:** [`unskinny-mk2.html`](unskinny-mk2.html). Download it and open it in any browser; it works offline. It has a 3D model, stress map, design lab and fight simulator.
+
 A ground-up redesign of the 2013 "Unskinny Bot" beetleweight (3 lb / 1361 g) combat robot, using the layout that current competitive horizontal spinners use: a direct-drive brushless hub-motor weapon, brushless geared drive and 4S power.
 
 Everything is **parametric and verified by code**. One parameter file drives the CAD, the physics simulations and an automated test suite.
@@ -28,6 +30,9 @@ params.py          single source of truth: dimensions, materials, motor data
 cad/build.py       CadQuery model -> STEP (assembly + parts), STL, DXF
 sim/models.py      weapon spin-up ODE, energy, stress, bite, drive, gyro, battery models
 sim/plots.py       plots, 3D renders, spinning demo GIF
+showcase/          interactive page: 3D viewer, stress map, design lab, fight simulator
+tools/             build_standalone.py bundles the page into one offline HTML file
+docs/              copy of the standalone page, ready for GitHub Pages
 tests/             12 pytest checks: part interference, bar-sweep clearance,
                    weight limit, balance, stress, spin-up, battery
 out/               generated files (cut-ready DXFs, printable STLs, STEP)
