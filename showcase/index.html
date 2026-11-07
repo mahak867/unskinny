@@ -1,0 +1,149 @@
+<title>Unskinny Mk II</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@500;700&family=IBM+Plex+Sans:wght@400;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: engineering portfolio sheet - live 3D model first, then numbers, sims, tests */
+:root{
+  --bg:#f2f3f1; --panel:#fff; --fg:#1b201f; --muted:#5b6562; --line:#d4d9d6;
+  --accent:#c2410c; --steel:#3f5a66; --ok:#2f7d4f; --stage:#e6e9e7;
+  --display:"Chakra Petch",system-ui,sans-serif; --body:"IBM Plex Sans",system-ui,sans-serif; --mono:"IBM Plex Mono",ui-monospace,monospace;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#121615;--panel:#1b2120;--fg:#e5eae8;--muted:#98a39f;--line:#313d39;--accent:#fb8a4c;--steel:#8fb3c2;--ok:#6fcf97;--stage:#1f2725;color-scheme:dark}}
+:root[data-theme="dark"]{--bg:#121615;--panel:#1b2120;--fg:#e5eae8;--muted:#98a39f;--line:#313d39;--accent:#fb8a4c;--steel:#8fb3c2;--ok:#6fcf97;--stage:#1f2725;color-scheme:dark}
+body{background:var(--bg);color:var(--fg);font:15px/1.6 var(--body);padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:28px 64px}
+main{max-width:1000px;margin:0 auto;display:grid;gap:40px}
+h1,h2{font-family:var(--display);margin:0;line-height:1.1;text-wrap:balance}
+h1{font-size:2.6rem} h2{font-size:1.4rem}
+p{margin:0;max-width:72ch} section{display:grid;gap:14px}
+.eyebrow{font:500 .75rem var(--mono);letter-spacing:.12em;text-transform:uppercase;color:var(--accent)}
+#stage{position:relative;height:min(62vh,520px);background:var(--stage);border:1px solid var(--line)}
+#stage canvas{display:block;width:100%;height:100%}
+.ctrl{position:absolute;left:12px;bottom:12px;display:flex;flex-wrap:wrap;gap:6px}
+.ctrl button{font:500 .78rem var(--mono);background:var(--panel);color:var(--fg);border:1px solid var(--line);padding:6px 10px;cursor:pointer}
+.ctrl button[aria-pressed="true"]{background:var(--accent);color:#fff;border-color:var(--accent)}
+.ctrl button:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+#status{position:absolute;right:12px;top:10px;font:500 .75rem var(--mono);color:var(--muted)}
+.kpi{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:1px;background:var(--line);border:1px solid var(--line)}
+.kpi div{background:var(--panel);padding:12px 14px}
+.kpi b{display:block;font:600 1.25rem var(--mono);font-variant-numeric:tabular-nums}
+.kpi span{font-size:.8rem;color:var(--muted)}
+.figs{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:14px}
+figure{margin:0;background:#fff;border:1px solid var(--line);padding:8px;display:grid;gap:6px}
+figure img{width:100%;height:auto}
+figcaption{font-size:.8rem;color:#5b6562}
+.tests{list-style:none;padding:0;margin:0;display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:4px}
+.tests li{background:var(--panel);border:1px solid var(--line);padding:8px 12px;font-size:.88rem;display:flex;gap:10px}
+.tests li::before{content:"PASS";font:600 .7rem var(--mono);color:var(--ok);padding-top:3px}
+.find{display:grid;gap:10px}
+.find div{background:var(--panel);border:1px solid var(--line);padding:12px 14px}
+.find b{font-family:var(--display)}
+.mono{font-family:var(--mono);font-size:.85em}
+</style>
+
+<main>
+<header style="display:grid;gap:10px">
+  <div class="eyebrow">Beetleweight combat robot · 3 lb · parametric CAD + simulation + automated tests</div>
+  <h1>Unskinny Mk II</h1>
+  <p>A redesign of a 2013 horizontal bar spinner around a direct-drive brushless hub-motor weapon. One parameter file drives the CadQuery model, a physics simulation and a 12-check test suite. Drag to orbit the model, scroll to zoom.</p>
+</header>
+
+<section>
+  <div id="stage"><span id="status">Loading model…</span>
+    <div class="ctrl">
+      <button id="spin" aria-pressed="true" type="button">Spin weapon</button>
+      <button id="xray" aria-pressed="false" type="button">X-ray top plate</button>
+      <button id="explode" aria-pressed="false" type="button">Exploded view</button>
+    </div>
+  </div>
+</section>
+
+<section>
+  <h2>Simulated performance</h2>
+  <div class="kpi">
+    <div><b>1328 g</b><span>total mass, 33 g under the 1361 g limit</span></div>
+    <div><b>~11,000 rpm</b><span>weapon speed, 4S</span></div>
+    <div><b>~940 J</b><span>stored weapon energy</span></div>
+    <div><b>2.0 s</b><span>spin-up to 90%</span></div>
+    <div><b>6.1×</b><span>bar safety factor (centrifugal)</span></div>
+    <div><b>8.2 mm</b><span>bite at 3 m/s closing</span></div>
+    <div><b>2.7 m/s</b><span>drive top speed</span></div>
+    <div><b>7.4 / 7.7 Wh</b><span>match energy vs usable battery</span></div>
+  </div>
+  <div class="figs">
+    <figure><img src="sim_results.png" alt="Weapon spin-up, stored energy, drive acceleration and bite depth plots"><figcaption>Weapon spin-up ODE with ESC current limit and aero drag, drive acceleration, bite depth.</figcaption></figure>
+    <figure><img src="weight_budget.png" alt="Weight budget bar chart"><figcaption>Weight budget: CAD masses from real volumes and densities, plus bought parts.</figcaption></figure>
+    <figure><img src="demo_spin.gif" alt="Animated render of the spinning weapon"><figcaption>Rendered demo from the exported meshes.</figcaption></figure>
+  </div>
+</section>
+
+<section>
+  <h2>Automated design checks</h2>
+  <p>Run with <span class="mono">make test</span>. All 12 pass on the current design.</p>
+  <ul class="tests">
+    <li>No two parts overlap (55 pairwise solid intersections)</li>
+    <li>Full 360° bar sweep clears every static part by 3 mm</li>
+    <li>Wheels reach the floor upside down</li>
+    <li>Fork reaches the floor</li>
+    <li>Weight ≤ limit with 15 g margin</li>
+    <li>Bar balanced within 0.05 mm</li>
+    <li>Weapon energy &gt; 500 J, spin-up &lt; 3 s</li>
+    <li>Bar centrifugal safety factor ≥ 3</li>
+    <li>Drive ≥ 2 m/s and traction-limited</li>
+    <li>Battery covers a 3-minute match</li>
+    <li>Spin-up converges to theoretical no-load speed</li>
+    <li>Energy formula unit check</li>
+  </ul>
+</section>
+
+<section>
+  <h2>Engineering findings</h2>
+  <div class="find">
+    <div><b>The first concept was 444 g overweight.</b> The CAD mass check showed a 50 × 9.5 mm bar weighs 773 g and full titanium plates ~400 g each. A thinner bar with slots near the hub, a tapered plate and pocketing brought it under the limit while keeping ~940 J.</div>
+    <div><b>Gyroscopic lift is about 11× gravity in fast turns.</b> Expected for horizontal spinners. The driver should turn gently at full spin.</div>
+    <div><b>Battery margin is thin.</b> If testing confirms it, an 850 mAh pack fits inside the weight margin.</div>
+  </div>
+  <p style="color:var(--muted);font-size:.85rem">Motor kV, winding resistance and some part masses are datasheet estimates. Update the parameters after weighing real parts and rerun.</p>
+</section>
+</main>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+<script>
+(function(){
+  const stage=document.getElementById('stage'),status=document.getElementById('status');
+  if(!window.THREE||!THREE.OrbitControls){status.textContent='3D viewer could not load. The renders below show the model.';return}
+  const renderer=new THREE.WebGLRenderer({antialias:true,alpha:true});
+  renderer.setPixelRatio(Math.min(devicePixelRatio,2));stage.prepend(renderer.domElement);
+  const scene=new THREE.Scene(),cam=new THREE.PerspectiveCamera(35,1,1,5000);
+  cam.up.set(0,0,1);cam.position.set(260,-420,300);
+  const ctl=new THREE.OrbitControls(cam,renderer.domElement);ctl.target.set(-80,0,0);ctl.enableDamping=true;
+  scene.add(new THREE.HemisphereLight(0xffffff,0x445055,0.9));
+  const d=new THREE.DirectionalLight(0xffffff,0.8);d.position.set(200,-300,500);scene.add(d);
+  const C={bar:0x7d8b94,top_plate:0xb9bfc4,bottom_plate:0xb9bfc4,frame:0xe0662a,hub_motor:0x2b2f33,battery:0x2f6fb0,fork:0x9aa3a8};
+  const EX={top_plate:[0,0,70],bottom_plate:[0,0,-70],bar:[0,0,30],fork:[0,0,-110],battery:[0,0,120],frame:[0,0,0]};
+  const names=['bar','top_plate','bottom_plate','frame','hub_motor','battery','fork','wheel_0','wheel_1','drive_0','drive_1'];
+  const meshes={};
+  fetch('model.json').then(r=>r.json()).then(data=>{
+    names.forEach(n=>{const p=data[n];if(!p)return;
+      const g=new THREE.BufferGeometry();
+      g.setAttribute('position',new THREE.Float32BufferAttribute(p.v,3));g.setIndex(p.f);g.computeVertexNormals();
+      const metal=n.includes('plate')||n==='bar'||n==='fork';
+      const m=new THREE.Mesh(g,new THREE.MeshStandardMaterial({color:C[n]||0x33383c,metalness:metal?0.6:0.1,roughness:0.5,transparent:true,flatShading:true}));
+      scene.add(m);meshes[n]=m});
+    status.textContent='';
+  }).catch(()=>{status.textContent='3D model failed to load. The renders below show the model.'});
+  function size(){const w=stage.clientWidth,h=stage.clientHeight;renderer.setSize(w,h,false);cam.aspect=w/h;cam.updateProjectionMatrix()}
+  addEventListener('resize',size);size();
+  const reduce=matchMedia('(prefers-reduced-motion: reduce)').matches;
+  let spin=!reduce,explode=0,target=0;
+  const bs=document.getElementById('spin');bs.setAttribute('aria-pressed',spin);
+  bs.onclick=()=>{spin=!spin;bs.setAttribute('aria-pressed',spin)};
+  const bx=document.getElementById('xray');bx.onclick=()=>{const on=bx.getAttribute('aria-pressed')!=='true';bx.setAttribute('aria-pressed',on);if(meshes.top_plate)meshes.top_plate.material.opacity=on?0.25:1};
+  const be=document.getElementById('explode');be.onclick=()=>{const on=be.getAttribute('aria-pressed')!=='true';be.setAttribute('aria-pressed',on);target=on?1:0};
+  (function loop(){requestAnimationFrame(loop);
+    explode+=(target-explode)*0.1;
+    for(const n in meshes){const o=EX[n]||[0,0,0];meshes[n].position.set(o[0]*explode,o[1]*explode,o[2]*explode)}
+    if(spin&&meshes.bar)meshes.bar.rotation.z+=0.35;
+    ctl.update();renderer.render(scene,cam)})();
+})();
+</script>

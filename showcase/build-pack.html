@@ -1,0 +1,270 @@
+<title>Unskinny Bot Build Pack</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@500;700&family=IBM+Plex+Sans:wght@400;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: one shop-manual column, sections as work stations, checkboxes persist per viewer */
+:root{
+  --bg:#f3f4f2; --panel:#ffffff; --fg:#1c2120; --muted:#5d6764; --line:#d5dad7;
+  --accent:#c2410c; --steel:#3f5a66; --warn-bg:#fff4e5; --warn:#8a4b00; --ok:#2f7d4f; --bar:#3f5a66;
+  --display:"Chakra Petch",system-ui,sans-serif; --body:"IBM Plex Sans",system-ui,sans-serif; --mono:"IBM Plex Mono",ui-monospace,monospace;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#141817; --panel:#1d2321; --fg:#e6ebe9; --muted:#9aa5a1; --line:#33403c;
+  --accent:#fb8a4c; --steel:#8fb3c2; --warn-bg:#33270f; --warn:#f3c178; --ok:#6fcf97; --bar:#8fb3c2; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#141817; --panel:#1d2321; --fg:#e6ebe9; --muted:#9aa5a1; --line:#33403c;
+  --accent:#fb8a4c; --steel:#8fb3c2; --warn-bg:#33270f; --warn:#f3c178; --ok:#6fcf97; --bar:#8fb3c2; color-scheme:dark}
+body{background:var(--bg);color:var(--fg);font:15px/1.6 var(--body);
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:32px 64px}
+main{max-width:900px;margin:0 auto;display:grid;gap:44px}
+h1,h2,h3{font-family:var(--display);text-wrap:balance;line-height:1.15;margin:0}
+h1{font-size:2.4rem} h2{font-size:1.5rem;display:flex;gap:12px;align-items:baseline}
+h2 .n{font-family:var(--mono);font-size:.85rem;color:var(--accent)}
+h3{font-size:1.05rem;margin-top:8px}
+p{margin:0;max-width:70ch} section{display:grid;gap:14px}
+.eyebrow{font:500 .75rem var(--mono);letter-spacing:.12em;text-transform:uppercase;color:var(--accent)}
+.specs{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:1px;background:var(--line);border:1px solid var(--line)}
+.specs div{background:var(--panel);padding:12px 14px;min-width:0}
+.specs b{display:block;font:600 1.15rem var(--mono);font-variant-numeric:tabular-nums}
+.specs span{font-size:.8rem;color:var(--muted)}
+.tbl{overflow-x:auto;border:1px solid var(--line);background:var(--panel)}
+table{border-collapse:collapse;width:100%;font-size:.88rem}
+th,td{text-align:left;padding:8px 10px;border-bottom:1px solid var(--line);vertical-align:top}
+th{font:500 .72rem var(--mono);letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+td.q,td.g{font-family:var(--mono);white-space:nowrap;font-variant-numeric:tabular-nums}
+td.g{text-align:right}
+tr:last-child td{border-bottom:0}
+tr.tot td{font-weight:600;border-top:2px solid var(--line)}
+.wbar{height:6px;background:var(--bar);opacity:.7;min-width:2px}
+.note{background:var(--warn-bg);color:var(--warn);padding:12px 14px;border-left:3px solid var(--warn);font-size:.9rem}
+.note b{color:inherit}
+.cmp{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:14px}
+.cmp>div{background:var(--panel);border:1px solid var(--line);padding:14px;display:grid;gap:6px;min-width:0}
+.cmp ul{margin:0;padding-left:18px}
+.tag{font:500 .7rem var(--mono);letter-spacing:.1em;text-transform:uppercase;color:var(--muted)}
+ul.chk{list-style:none;padding:0;margin:0;display:grid;gap:2px}
+ul.chk li{background:var(--panel);border:1px solid var(--line);padding:8px 12px;display:flex;gap:10px;align-items:flex-start}
+ul.chk input{margin-top:5px;accent-color:var(--accent);width:16px;height:16px;flex:none}
+ul.chk label{min-width:0;cursor:pointer}
+ul.chk input:checked+label{color:var(--muted);text-decoration:line-through}
+.prog{font:500 .8rem var(--mono);color:var(--muted)}
+.prog b{color:var(--ok)}
+.m{font-family:var(--mono);font-size:.88em}
+pre.mermaid{background:var(--panel);border:1px solid var(--line);padding:12px;overflow-x:auto}
+.calc{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:10px;background:var(--panel);border:1px solid var(--line);padding:14px}
+.calc label{display:grid;gap:4px;font-size:.8rem;color:var(--muted)}
+.calc input{font:500 .95rem var(--mono);padding:6px 8px;border:1px solid var(--line);background:var(--bg);color:var(--fg);width:100%;box-sizing:border-box}
+.out{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:1px;background:var(--line);border:1px solid var(--line)}
+.out div{background:var(--panel);padding:10px 14px}
+.out b{display:block;font:600 1.1rem var(--mono);font-variant-numeric:tabular-nums}
+.out span{font-size:.78rem;color:var(--muted)}
+a{color:var(--steel)}
+button{font:500 .8rem var(--mono);background:transparent;color:var(--muted);border:1px solid var(--line);padding:6px 10px;cursor:pointer}
+button:focus-visible,input:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.src{font-size:.85rem;color:var(--muted)} .src li{margin-bottom:4px}
+</style>
+
+<main>
+<header style="display:grid;gap:10px">
+  <div class="eyebrow">Mk II redesign · Beetleweight 3 lb (1361 g) · horizontal bar spinner</div>
+  <h1>Unskinny Bot Build Pack</h1>
+  <p>A ground-up remake of lewisb42's 2013 spinner, using the layout that wins beetleweight events today: a direct-drive brushless weapon on a hub motor, brushless geared drive, 4S power and a hardened steel bar. Everything you need to order, design, build and test is here. Tick boxes as you go; they're saved in this browser. <span class="prog" id="prog"></span></p>
+</header>
+
+<section>
+  <h2><span class="n">00</span>What changed and why</h2>
+  <p>Top horizontal spinners in current 3 lb brackets (for example Caldera, a horizontal midcutter, and the many bar spinners in the NHRL 2025 Championship qualifier list) share a few traits. Mk II adopts all of them.</p>
+  <div class="cmp">
+    <div><span class="tag">2013 original</span><h3>Unskinny Mk I</h3><ul>
+      <li>Belt drive, 1600 kV outrunner, no tensioner</li>
+      <li>Aluminum bar, 6 in long</li>
+      <li>Brushed B16 drive, 3S 1000 mAh</li>
+      <li>Aluminum + UHMW box frame</li>
+      <li>Belt jumps off on big hits</li></ul></div>
+    <div><span class="tag">Mk II</span><h3>Unskinny Mk II</h3><ul>
+      <li><b>Direct-drive hub motor</b> (Repeat 2812 class): blade bolts to the motor bell, no belt or pulleys</li>
+      <li><b>Hardened steel bar</b> (AR500 or S7), ~9 in, ~300 g</li>
+      <li><b>Brushless planetary drive</b> (Repeat Max V2 class)</li>
+      <li><b>4S LiPo</b> for more weapon and drive power</li>
+      <li><b>Thick TPU frame</b> to absorb recoil, titanium top/bottom plates</li>
+      <li>Low, invertible profile with replaceable front forks</li></ul></div>
+  </div>
+</section>
+
+<section>
+  <h2><span class="n">01</span>Target specs</h2>
+  <div class="specs">
+    <div><b>≤ 1340 g</b><span>target weight (21 g margin)</span></div>
+    <div><b>229 × 38 × 5 mm</b><span>AR500 bar, 304 g (from CAD)</span></div>
+    <div><b>~11,000 rpm</b><span>weapon speed (simulated)</span></div>
+    <div><b>~940 J</b><span>stored weapon energy (simulated)</span></div>
+    <div><b>4S 650 mAh</b><span>LiPo, 75C+ (enough for a 3 min fight)</span></div>
+    <div><b>260 × 164 × 62 mm</b><span>body footprint (from CAD)</span></div>
+  </div>
+  <div class="note"><b>These are design targets, not measured numbers.</b> Check the exact kV of the hub motor you buy and rerun the calculator below. Some events cap spinner tip speed or require a test box, so check your rules first.</div>
+</section>
+
+<section>
+  <h2><span class="n">02</span>Weapon calculator</h2>
+  <p>A bar's stored energy is ½·I·ω², with I = m(L² + w²)/12. Change the values to try other bars or motors.</p>
+  <div class="calc">
+    <label for="cm">Bar mass (g)<input id="cm" type="number" value="304" min="1"></label>
+    <label for="cl">Bar length (mm)<input id="cl" type="number" value="229" min="1"></label>
+    <label for="cw">Bar width (mm)<input id="cw" type="number" value="38" min="1"></label>
+    <label for="ck">Motor kV<input id="ck" type="number" value="900" min="1"></label>
+    <label for="cv">Battery (cells)<input id="cv" type="number" value="4" min="1" max="6"></label>
+    <label for="ce">Loaded efficiency (%)<input id="ce" type="number" value="75" min="1" max="100"></label>
+  </div>
+  <div class="out">
+    <div><b id="o-rpm">—</b><span>loaded rpm</span></div>
+    <div><b id="o-tip">—</b><span>tip speed</span></div>
+    <div><b id="o-j">—</b><span>stored energy</span></div>
+    <div><b id="o-i">—</b><span>moment of inertia</span></div>
+  </div>
+</section>
+
+<section>
+  <h2><span class="n">03</span>System layout</h2>
+  <pre class="mermaid">
+flowchart LR
+  BAT["4S LiPo 650 mAh"] --> SW["Power switch / link"]
+  SW --> DESC["Dual brushless drive ESC"]
+  SW --> WESC["Weapon ESC 60–80 A, 4S"]
+  DESC --> ML["Left Max V2 drive"]
+  DESC --> MR["Right Max V2 drive"]
+  WESC --> HUB["2812 hub motor + steel bar"]
+  RX["Receiver with failsafe"] -.->|"CH1/CH2 mixed"| DESC
+  RX -.->|"CH3"| WESC
+  </pre>
+  <p>The weapon motor sits at the center of the chassis between the top and bottom plates, bolted through both. The battery and ESCs sit in the rear pods behind the drive motors, as far from the weapon as possible. Wheels poke out past both plates slightly so the bot drives either way up.</p>
+</section>
+
+<section>
+  <h2><span class="n">04</span>Bill of materials</h2>
+  <div class="note"><b>Check stock and prices before ordering.</b> Parts listed by class with a known current example. Palm Beach Bots, Repeat Robotics and Fingertech stock most of them.</div>
+  <h3>Power and motion</h3>
+  <div class="tbl"><table>
+    <tr><th>Qty</th><th>Part</th><th>Example</th><th>Notes</th></tr>
+    <tr><td class="q">1</td><td>Brushless hub motor, weapon</td><td>Repeat Robotics 2812 Battle Ready Beetle Hubmotor</td><td>~175 g, M5 weapon bolts, M4 mount pattern. Confirm kV</td></tr>
+    <tr><td class="q">2</td><td>Brushless planetary drive motor</td><td>Repeat Robotics Max V2 24 mm (2006, 2100 kV, 27:1)</td><td>Rated up to 4S with reversing ESCs</td></tr>
+    <tr><td class="q">1</td><td>Dual brushless drive ESC</td><td>Repeat or DualSky combat dual ESC</td><td>Must support reversing and 4S</td></tr>
+    <tr><td class="q">1</td><td>Weapon ESC, 60–80 A, 4S</td><td>BLHeli_32 / AM32 ESC</td><td>Set a soft start ramp so you don't brown out the drive</td></tr>
+    <tr><td class="q">1</td><td>Receiver</td><td>Matches your transmitter (FlySky, FrSky, ELRS)</td><td>Failsafe required. ELRS gives telemetry</td></tr>
+    <tr><td class="q">3</td><td>4S 650 mAh LiPo, 75C+</td><td>GNB, CNHL, Tattu</td><td>One in the bot, two charged spares</td></tr>
+    <tr><td class="q">1</td><td>Power switch or removable link</td><td>Fingertech switch or XT30 link</td><td>Needs to be reachable with the bot fully assembled</td></tr>
+    <tr><td class="q">2 + spares</td><td>Drive wheels, ~2.25–2.5 in</td><td>Fingertech Viper or cast urethane</td><td>Hub to match the Max V2 output</td></tr>
+  </table></div>
+  <h3>Structure and weapon</h3>
+  <div class="tbl"><table>
+    <tr><th>Qty</th><th>Part</th><th>Material</th><th>How to make it</th></tr>
+    <tr><td class="q">1 + spare</td><td>Weapon bar, 229 × 38 × 5 mm</td><td>AR500 or S7 tool steel, hardened</td><td>Waterjet or laser from the DXF, then bevel the impact teeth</td></tr>
+    <tr><td class="q">2</td><td>Top and bottom plates</td><td>Grade 5 titanium, 1.2 mm, tapered and pocketed</td><td>Laser/waterjet (SendCutSend, OSH Cut)</td></tr>
+    <tr><td class="q">1</td><td>Main frame / unibody</td><td>TPU 95A, or Nylon-CF for the stiffer middle</td><td>3D print, 4–6 walls, 50%+ gyroid</td></tr>
+    <tr><td class="q">2 + spares</td><td>Front forks / wedgelets</td><td>Hardened steel or titanium</td><td>Bolt-on, replaceable between fights</td></tr>
+    <tr><td class="q">1 set</td><td>Fasteners</td><td>Grade 12.9 M3/M4/M5 socket caps, threaded inserts</td><td>Blue threadlocker on all metal-to-metal threads</td></tr>
+    <tr><td class="q">1 set</td><td>Wire, connectors</td><td>14–16 AWG silicone wire, XT30, heat-shrink</td><td>Keep runs short</td></tr>
+  </table></div>
+</section>
+
+<section>
+  <h2><span class="n">05</span>Weight budget</h2>
+  <p>Weigh every part as it arrives and fill in the real numbers. Estimated values are marked "est."</p>
+  <div class="tbl"><table id="wt">
+    <tr><th>Item</th><th style="text-align:right">Grams</th><th style="width:40%"></th></tr>
+  </table></div>
+</section>
+
+<section>
+  <h2><span class="n">06</span>Design phase (CAD)</h2>
+  <ul class="chk" data-k="cad">
+    <li><input type="checkbox" id="c1"><label for="c1">Download STEP models for the hub motor, Max V2 and ESCs (Repeat Robotics publishes CAD on GrabCAD).</label></li>
+    <li><input type="checkbox" id="c2"><label for="c2">Model the hub motor at the chassis center. Bar clearance should be at least 3 mm to the plates and forks.</label></li>
+    <li><input type="checkbox" id="c3"><label for="c3">Place drive motors behind the weapon, wheels sticking out past both plates by ~2 mm so the bot drives upside down.</label></li>
+    <li><input type="checkbox" id="c4"><label for="c4">Pack the battery and ESCs in the rear pods with foam. Leave space for wire bends.</label></li>
+    <li><input type="checkbox" id="c5"><label for="c5">Design the bar: two impact teeth on opposite ends, balanced to within 1 g side to side. Use the calculator for energy.</label></li>
+    <li><input type="checkbox" id="c6"><label for="c6">Use CAD mass properties with real densities (steel 7.85, Ti 4.43, TPU 1.21 g/cm³). The total must be ≤ 1340 g.</label></li>
+    <li><input type="checkbox" id="c7"><label for="c7">Export DXFs for the bar, plates and forks, and STLs for the frame. Order two of each metal part.</label></li>
+  </ul>
+</section>
+
+<section>
+  <h2><span class="n">07</span>Build sequence</h2>
+  <ul class="chk" data-k="build">
+    <li><input type="checkbox" id="b1"><label for="b1"><b>Print the frame</b> in TPU. Install heat-set threaded inserts for the plate screws.</label></li>
+    <li><input type="checkbox" id="b2"><label for="b2"><b>Deburr the cut parts.</b> Tap the plates where needed. Grind bevels on the bar's teeth, then balance it on a knife edge or a balancer.</label></li>
+    <li><input type="checkbox" id="b3"><label for="b3"><b>Mount the drive.</b> Fit the Max V2 motors into the frame and press on the wheels and hubs.</label></li>
+    <li><input type="checkbox" id="b4"><label for="b4"><b>Mount the weapon.</b> Bolt the hub motor stator to the bottom plate, then the top plate. Bolt the bar to the bell with M5 grade 12.9 screws and threadlocker.</label></li>
+    <li><input type="checkbox" id="b5"><label for="b5"><b>Wire it.</b> Solder per the layout above, with every joint heat-shrunk. Mount the switch where you can reach it.</label></li>
+    <li><input type="checkbox" id="b6"><label for="b6"><b>Secure the electronics.</b> Foam-pack the ESCs and battery, and strap the battery down.</label></li>
+    <li><input type="checkbox" id="b7"><label for="b7"><b>Fit the forks</b> and adjust their height so they sit just above the floor.</label></li>
+    <li><input type="checkbox" id="b8"><label for="b8"><b>Weigh it.</b> Update the weight budget. Over 1361 g? Trim the frame infill or the fork size first, never the bar.</label></li>
+  </ul>
+</section>
+
+<section>
+  <h2><span class="n">08</span>Testing</h2>
+  <ul class="chk" data-k="test">
+    <li><input type="checkbox" id="t1"><label for="t1">Bind the receiver and set failsafe to off on all channels. Check it by switching off the transmitter.</label></li>
+    <li><input type="checkbox" id="t2"><label for="t2">Configure the ESCs: drive reversing, weapon ramp-up (about 1–2 s to full), direction.</label></li>
+    <li><input type="checkbox" id="t3"><label for="t3">Drive test with the bar removed. Check both ways up.</label></li>
+    <li><input type="checkbox" id="t4"><label for="t4">Spin up the weapon in a closed test box, in steps: 25%, 50%, full. Watch for vibration.</label></li>
+    <li><input type="checkbox" id="t5"><label for="t5">Measure loaded rpm with a tachometer or ESC telemetry. Compare with the calculator.</label></li>
+    <li><input type="checkbox" id="t6"><label for="t6">Run a full 3-minute session and check motor, ESC and battery temperatures.</label></li>
+    <li><input type="checkbox" id="t7"><label for="t7">Do sparring hits against a test target. Check every bolt afterwards.</label></li>
+  </ul>
+</section>
+
+<section>
+  <h2><span class="n">09</span>Event day</h2>
+  <ul class="chk" data-k="event">
+    <li><input type="checkbox" id="e1"><label for="e1">Pass the weigh-in with the heaviest fork set fitted.</label></li>
+    <li><input type="checkbox" id="e2"><label for="e2">Pack spares: bar, forks, wheels, drive motor, ESC, receiver, 3 batteries, fasteners.</label></li>
+    <li><input type="checkbox" id="e3"><label for="e3">Bring tools: hex drivers, threadlocker, soldering iron, LiPo charger and fireproof bag, zip ties, tape.</label></li>
+    <li><input type="checkbox" id="e4"><label for="e4">Between fights: charge, check all bolts, inspect the bar teeth and the wheels.</label></li>
+  </ul>
+  <div class="note"><b>Safety:</b> a 750 J steel bar can seriously injure someone. Only spin it inside an enclosure, always arm and disarm with the bot pointed away from people, and charge LiPos in a fireproof bag.</div>
+</section>
+
+<section>
+  <h2><span class="n">10</span>Sources</h2>
+  <ul class="src">
+    <li><a href="https://www.instructables.com/Unskinny-Bot-3-lb-Horizontal-Spinner-Combat-Bot/" target="_blank" rel="noopener">Original Unskinny Bot guide (lewisb42, Instructables)</a></li>
+    <li><a href="https://wiki.nhrl.io/wiki/index.php?title=2025_Championships" target="_blank" rel="noopener">NHRL 2025 Championships: 3 lb qualifiers</a></li>
+    <li><a href="https://palmbeachbots.com/products/repeat-robotics-2812-battle-ready-beetle-hubmotor" target="_blank" rel="noopener">Repeat Robotics 2812 Battle Ready Beetle Hubmotor</a></li>
+    <li><a href="https://reach.dog/shop/palm-beach-bots/products/repeat-robotics-max-v2-24mm-brushless-planetary-motor-beetle-drive" target="_blank" rel="noopener">Repeat Robotics Max V2 24 mm brushless planetary drive</a></li>
+    <li><a href="https://cad.grabcad.com/repeat.robotics-1/models?page=1" target="_blank" rel="noopener">Repeat Robotics CAD models (GrabCAD)</a></li>
+    <li><a href="https://runamok.tech/AskAaron/weapon.html" target="_blank" rel="noopener">Ask Aaron: weapon design Q&amp;A</a></li>
+  </ul>
+</section>
+
+<p style="text-align:right"><button id="reset" type="button">Clear all checkmarks</button></p>
+</main>
+
+<script>
+(function(){
+  // Weight budget
+  const W=[["Steel weapon bar",304.5,"CAD"],["Hub motor (2812)",175,""],["Drive motors ×2 (Max V2)",120,"est."],["Wheels + hubs ×2",70,"est."],
+    ["Titanium plates ×2",255.2,"CAD"],["TPU frame",166,"CAD"],["Fork",17,"CAD"],["4S 650 mAh LiPo",85,"est."],
+    ["Weapon ESC",35,"est."],["Dual drive ESC",15,"est."],["Receiver + switch",15,"est."],["Wire, connectors",40,"est."],["Fasteners",30,"est."]];
+  const t=document.getElementById('wt');let sum=0;const max=Math.max(...W.map(w=>w[1]));
+  W.forEach(([n,g,e])=>{sum+=g;const r=t.insertRow();r.innerHTML='<td>'+n+(e?' <span style="color:var(--muted)">'+e+'</span>':'')+'</td><td class="g">'+g+'</td><td><div class="wbar" style="width:'+(g/max*100)+'%"></div></td>'});
+  const tr=t.insertRow();tr.className='tot';tr.innerHTML='<td>Total (limit 1361 g)</td><td class="g">'+sum+'</td><td style="color:var(--ok)">'+(1361-sum).toFixed(1)+' g margin</td>';
+  // Calculator
+  const ids=['cm','cl','cw','ck','cv','ce'];const fmt=n=>Math.round(n).toLocaleString();
+  function calc(){const [m,l,w,kv,c,e]=ids.map(i=>parseFloat(document.getElementById(i).value)||0);
+    const I=(m/1000)*((l/1000)**2+(w/1000)**2)/12;const rpm=kv*c*3.7*(e/100);const om=rpm*2*Math.PI/60;
+    document.getElementById('o-rpm').textContent=fmt(rpm);document.getElementById('o-tip').textContent=fmt(om*l/2000)+' m/s';
+    document.getElementById('o-j').textContent=fmt(0.5*I*om*om)+' J';document.getElementById('o-i').textContent=(I*1e4).toFixed(2)+' kg·cm²';}
+  ids.forEach(i=>document.getElementById(i).addEventListener('input',calc));calc();
+  // Checklists
+  const boxes=[...document.querySelectorAll('ul.chk input')];const KEY='unskinny-mk2-checks';
+  let s={};try{s=JSON.parse(localStorage.getItem(KEY)||'{}')}catch(e){}
+  const prog=document.getElementById('prog');
+  function upd(){prog.innerHTML='Progress: <b>'+boxes.filter(b=>b.checked).length+'</b> / '+boxes.length+' steps done.'}
+  boxes.forEach(b=>{b.checked=!!s[b.id];b.addEventListener('change',()=>{s[b.id]=b.checked;try{localStorage.setItem(KEY,JSON.stringify(s))}catch(e){}upd()})});
+  let armed=false;const r=document.getElementById('reset');
+  r.addEventListener('click',()=>{if(!armed){armed=true;r.textContent='Click again to confirm';setTimeout(()=>{armed=false;r.textContent='Clear all checkmarks'},3000);return}
+    s={};boxes.forEach(b=>b.checked=false);try{localStorage.removeItem(KEY)}catch(e){}armed=false;r.textContent='Clear all checkmarks';upd()});
+  upd();
+})();
+</script>
