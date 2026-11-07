@@ -47,8 +47,23 @@ From the interactive demo ([`unskinny-mk2.html`](unskinny-mk2.html)).
 
 ---
 
+## Builder package
+
+Everything a fabricator needs, in [`builder/Unskinny_MkII_Builder_Package.pdf`](builder/Unskinny_MkII_Builder_Package.pdf) (16 pages):
+design upgrades, files list, bought and made parts, fasteners and torques, 5 dimensioned part drawings, wiring diagram, wire list and channel map, exploded assembly with numbered parts and steps, radio/speed-controller setup, test checks and safety.
+Drawings are also in [`builder/drawings/`](builder/drawings) as SVG and PNG, and regenerate from the CAD with `python3 builder/drawings.py`, `builder/wiring.py` and `builder/assembly.py`.
+
+| Wiring diagram | Exploded assembly |
+|---|---|
+| ![Wiring](builder/drawings/UMK2-E01_wiring.png) | ![Assembly](builder/drawings/UMK2-A01_exploded_assembly.png) |
+
+![Weapon bar drawing](builder/drawings/UMK2-001_weapon_bar.png)
+
+---
+
 ## Contents
 
+1. [Builder package](#builder-package)
 1. [Screenshots](#screenshots)
 1. [Headline results](#headline-results)
 2. [Interactive demo](#interactive-demo)

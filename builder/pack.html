@@ -1,0 +1,170 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><title>Unskinny Mk II Builder Package</title>
+<style>
+@page{size:A4;margin:14mm 12mm}
+@page land{size:A4 landscape;margin:8mm 10mm}
+.sheet{page:land}
+.box{break-inside:avoid}
+body{font:10.5pt/1.45 "Inter","Helvetica Neue",Arial,sans-serif;color:#15191b;margin:0}
+h1{font-size:26pt;margin:0 0 4px} h2{font-size:15pt;margin:22px 0 8px;border-bottom:2px solid #c2410c;padding-bottom:3px;break-after:avoid}
+h3{font-size:11.5pt;margin:14px 0 6px;break-after:avoid}
+table{border-collapse:collapse;width:100%;font-size:9pt;margin:6px 0 10px;break-inside:auto}
+th,td{border:1px solid #c9cfcc;padding:4px 6px;text-align:left;vertical-align:top} th{background:#eef1ef;font-weight:600}
+tr{break-inside:avoid} td.n{text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}
+.sheet{break-before:page;text-align:center} .sheet img{width:100%;max-height:178mm;object-fit:contain}
+.cover img{width:100%;margin:8px 0} .meta{color:#555} .tag{display:inline-block;font:600 8pt monospace;border:1px solid;padding:0 5px;margin-right:4px}
+.p1{color:#b3261e}.p2{color:#b7791f}.p3{color:#2f7d4f}
+.box{border:1px solid #c9cfcc;background:#f7f8f7;padding:8px 10px;margin:8px 0} .warn{border-color:#b3261e;background:#fdecea}
+ol li,ul li{margin-bottom:3px} .cols{columns:2;column-gap:18px}
+code{font-family:"IBM Plex Mono",monospace;font-size:9pt;background:#eef1ef;padding:0 3px}
+.chk li{list-style:none;margin-left:-18px} .chk li::before{content:"☐  "}
+</style></head><body>
+
+<section class="cover">
+<div class="meta">BUILDER PACKAGE · REV A · NOVEMBER 2026</div>
+<h1>Unskinny Mk II</h1>
+<p><b>3 lb (1361 g) beetleweight combat robot · horizontal bar spinner · invertible</b><br>Designer: Mahak · github.com/mahak867/unskinny</p>
+<img src="../images/viewer-iso.png" alt="">
+<table><tr><th>Mass</th><td>1,328 g (limit 1,361 g)</td><th>Weapon</th><td>229 × 38 × 5 mm AR500 bar, 304 g</td></tr>
+<tr><th>Weapon speed / energy</th><td>~11,000 rpm / ~940 J (4S)</td><th>Spin-up to 90%</th><td>2.0 s</td></tr>
+<tr><th>Drive</th><td>2× 24 mm brushless planetary 27:1, 2.7 m/s</td><th>Power</th><td>4S 650 mAh LiPo</td></tr>
+<tr><th>Structure</th><td>1.2 mm Ti-6Al-4V plates, TPU 95A frame</td><th>Footprint</th><td>260 × 164 × 62 mm (wheels)</td></tr></table>
+<div class="box"><b>What's in this package:</b> design upgrades (§1), files list (§2), bought parts (§3), made parts (§4), fasteners and torques (§5), part drawings (§6), wiring (§7), assembly (§8), radio and speed-controller setup (§9), testing (§10), spares and tools (§11), safety (§12).<br>
+<b>Which file wins:</b> where a dimension on a drawing and the STEP/DXF files disagree, the STEP/DXF files are correct.</div>
+</section>
+
+<section style="break-before:page">
+<h2>1 · Design upgrades: making it the best bot</h2>
+<p>These come from the simulations and design checks, ordered by how much they help. <span class="tag p1">P1</span> do before building · <span class="tag p2">P2</span> strongly recommended · <span class="tag p3">P3</span> later improvement.</p>
+<table>
+<tr><th>#</th><th>Upgrade</th><th>Why (evidence)</th><th>Cost</th></tr>
+<tr><td><span class="tag p1">P1</span></td><td><b>Lower the weapon to 10–15 mm above the floor.</b> Mount the motor offset downward and make the bottom plate a short skid under the bar.</td><td>The bar currently spins at the robot's mid-height, about 31 mm off the floor. Wedges, forks and wheels sit lower than that, so the bar skims over them. Hitting low is what horizontal spinners win with. Trade-off: it no longer works upside down, so add a quick self-righting method or accept the risk.</td><td>Redesign plates and frame; ~0 g</td></tr>
+<tr><td><span class="tag p1">P1</span></td><td><b>Use a single-tooth bar</b> (one impact tooth plus a counterweight lobe).</td><td>Bite doubles from 8.2 mm to about 16 mm at 3 m/s, about the same as fully engaging the tooth every hit. In the fight simulator, hits under 10 mm bite deliver only 40–70% of the energy.</td><td>Same mass; balance carefully</td></tr>
+<tr><td><span class="tag p1">P1</span></td><td><b>Thicken the frame walls at the ESC bays</b> from about 7 mm to 12 mm, or move the bays toward the middle.</td><td>Drawing UMK2-004 shows the ESC bays leave thin walls right behind the wheel slots, the most likely place for a horizontal spinner to hit.</td><td>+8 g</td></tr>
+<tr><td><span class="tag p2">P2</span></td><td><b>Use replaceable hardened teeth</b>: two bolt-on S7 inserts (HRC 54–56) on an AR500 bar.</td><td>The teeth take all the impact. Swap them between fights instead of the whole 304 g bar.</td><td>+10 g</td></tr>
+<tr><td><span class="tag p2">P2</span></td><td><b>Use an 850 mAh battery.</b></td><td>The simulation uses 7.4 of the 7.7 Wh available per match, which is too tight.</td><td>+25 g (margin is 33 g)</td></tr>
+<tr><td><span class="tag p2">P2</span></td><td><b>Add a second fork set</b> (longer and lower) for wedge opponents, swappable in under 1 minute.</td><td>In the fight simulator, a steel wedge beats Mk II 17 times out of 20 on damage.</td><td>Spare part only</td></tr>
+<tr><td><span class="tag p2">P2</span></td><td><b>Weapon braking or reverse</b>: enable braking in the weapon ESC on a switch.</td><td>The gyroscopic tilt is about 11× gravity in fast turns. Slowing the weapon before tight manoeuvres keeps the wheels on the floor.</td><td>Setting only</td></tr>
+<tr><td><span class="tag p3">P3</span></td><td><b>ELRS receiver with telemetry</b> (weapon rpm, battery voltage).</td><td>Lets you check the real rpm against the simulation and catch voltage sag.</td><td>~0 g</td></tr>
+<tr><td><span class="tag p3">P3</span></td><td><b>Shock-mount the electronics</b> in 3 mm EVA foam and strap the battery with Velcro over foam.</td><td>A 940 J hit sends shock loads through the TPU frame into the ESCs.</td><td>+5 g</td></tr>
+<tr><td><span class="tag p3">P3</span></td><td><b>Spend the remaining weight on the bar tips</b> (thicker tips or longer bar).</td><td>Stored energy grows with mass × radius². 20 g at the tips adds about 8% energy.</td><td>uses margin</td></tr>
+</table>
+<div class="box">Update <code>params.py</code> after each change and run <code>make</code>. The CAD, simulations and 12 design checks re-run and flag any clash or weight problem.</div>
+</section>
+
+<section style="break-before:page">
+<h2>2 · Files list</h2>
+<table><tr><th>File</th><th>Use</th></tr>
+<tr><td><code>out/unskinny_mk2_assembly.step</code></td><td>Full assembly, opens in any CAD program</td></tr>
+<tr><td><code>out/bar.dxf</code>, <code>out/top_plate.dxf</code>, <code>out/bottom_plate.dxf</code></td><td>Laser or waterjet cut files (mm, 1:1)</td></tr>
+<tr><td><code>out/bar.step</code>, <code>out/top_plate.step</code>, <code>out/bottom_plate.step</code>, <code>out/frame.step</code></td><td>3D models of each part</td></tr>
+<tr><td><code>out/frame.stl</code>, <code>out/fork.stl</code></td><td>3D print / bend reference</td></tr>
+<tr><td><code>builder/drawings/UMK2-00x_*.svg/png</code></td><td>Dimensioned part drawings (also in §6)</td></tr>
+<tr><td><code>builder/drawings/UMK2-E01_wiring.svg</code></td><td>Wiring diagram (§7)</td></tr>
+<tr><td><code>builder/drawings/UMK2-A01_exploded_assembly.png</code></td><td>Exploded assembly with numbered parts (§8)</td></tr>
+<tr><td><code>unskinny-mk2.html</code></td><td>Interactive 3D model and simulators, works offline</td></tr></table>
+
+<h2>3 · Bought parts</h2>
+<table><tr><th>Item</th><th>Qty</th><th>Part</th><th>Example / source</th><th>Spec to match</th><th class="n">g</th></tr>
+<tr><td>6</td><td>1 (+1)</td><td>Weapon hub motor 2812</td><td>Repeat Robotics 2812 Battle Ready Beetle Hubmotor (palmbeachbots.com)</td><td>M4 mount on Ø25 PCD, M5 bell holes on Ø30 PCD, ~900 kV</td><td class="n">175</td></tr>
+<tr><td>7</td><td>2 (+1)</td><td>Drive motor</td><td>Repeat Robotics Max V2 24 mm, 27:1</td><td>Ø24 can, 4S capable</td><td class="n">60 ea</td></tr>
+<tr><td>11</td><td>1 (+1)</td><td>Weapon ESC</td><td>AM32 or BLHeli_32, 60–80 A</td><td>4S, ramp/soft start, brake option</td><td class="n">35</td></tr>
+<tr><td>12</td><td>1 (+1)</td><td>Dual drive ESC</td><td>Repeat or DualSky combat dual ESC</td><td>brushless, reversing, 4S, 5 V BEC</td><td class="n">15</td></tr>
+<tr><td>13</td><td>1</td><td>Receiver</td><td>ELRS (recommended) / FrSky / FlySky</td><td>≥3 channels, failsafe "no pulses"</td><td class="n">5</td></tr>
+<tr><td>14</td><td>1</td><td>Power link / switch</td><td>Fingertech switch or XT30 removable link</td><td>reachable when fully assembled</td><td class="n">10</td></tr>
+<tr><td>8</td><td>3</td><td>LiPo battery</td><td>GNB / CNHL / Tattu 4S 650 (or 850) mAh 75C</td><td>≤ 72 × 36 × 26 mm, XT30</td><td class="n">85 ea</td></tr>
+<tr><td>5</td><td>2 (+2)</td><td>Wheel + hub</td><td>Fingertech Viper or cast urethane 62 mm</td><td>hub bore to match drive output</td><td class="n">35 ea</td></tr>
+<tr><td>—</td><td>1 set</td><td>Wire &amp; connectors</td><td>14 AWG + 18 AWG silicone, 26 AWG servo leads, XT30 pairs, 3.5 mm bullets, heat-shrink</td><td></td><td class="n">40</td></tr>
+<tr><td>—</td><td>1</td><td>Transmitter</td><td>Any that binds to the receiver (ELRS: RadioMaster)</td><td>failsafe + mixing</td><td></td></tr>
+<tr><td>—</td><td>1</td><td>Charger + LiPo bag</td><td>balance charger, 4S capable</td><td></td><td></td></tr></table>
+
+<h2>4 · Made parts</h2>
+<table><tr><th>DWG</th><th>Part</th><th>Material</th><th>Process</th><th>Qty</th><th class="n">g</th></tr>
+<tr><td>UMK2-001</td><td>Weapon bar</td><td>AR500, 5 mm</td><td>Waterjet/laser → grind bevel → balance</td><td>2</td><td class="n">304.5</td></tr>
+<tr><td>UMK2-002</td><td>Top plate</td><td>Ti-6Al-4V, 1.2 mm</td><td>Laser/waterjet → deburr</td><td>2</td><td class="n">127.6</td></tr>
+<tr><td>UMK2-003</td><td>Bottom plate</td><td>Ti-6Al-4V, 1.2 mm</td><td>Laser/waterjet → deburr → drill fork holes</td><td>2</td><td class="n">127.6</td></tr>
+<tr><td>UMK2-004</td><td>Frame</td><td>TPU 95A</td><td>FDM, 5 walls, 45% gyroid, 12× M3 heat-set inserts</td><td>2</td><td class="n">166.0</td></tr>
+<tr><td>UMK2-005</td><td>Fork</td><td>Ti-6Al-4V, 1.5 mm</td><td>Laser → brake bend ≈ 9.5°</td><td>3</td><td class="n">17.0</td></tr></table>
+<p>Suggested suppliers: SendCutSend or OSH Cut (AR500 and titanium cutting), any local FDM printer or JLCPCB 3D printing for TPU.</p>
+
+<h2>5 · Fasteners and torques</h2>
+<table><tr><th>Item</th><th>Qty</th><th>Fastener</th><th>Joins</th><th>Torque</th><th>Threadlocker</th></tr>
+<tr><td>10</td><td>4 (+4)</td><td>M5 × 12 socket head cap screw, grade 12.9</td><td>Bar → hub bell</td><td>4.5 N·m</td><td>Loctite 243 (blue)</td></tr>
+<tr><td>9a</td><td>8</td><td>M4 × 8 button head, grade 12.9</td><td>Plates → hub stator (4 top, 4 bottom)</td><td>2.0 N·m</td><td>Loctite 243</td></tr>
+<tr><td>9b</td><td>12</td><td>M3 × 8 button head, A2 or 12.9</td><td>Plates → frame heat-set inserts</td><td>0.5 N·m</td><td>none (TPU)</td></tr>
+<tr><td>9c</td><td>2</td><td>M3 × 6 button head + nyloc nut</td><td>Fork → bottom plate</td><td>0.8 N·m</td><td>nyloc</td></tr>
+<tr><td>—</td><td>12</td><td>M3 heat-set inserts, 5.7 mm long</td><td>Into frame top and bottom</td><td>—</td><td>—</td></tr></table>
+<p>Check the screw lengths against the actual motor thread depth before ordering. Screws must not reach the motor windings.</p>
+<h2>6 · Part drawings</h2><p>The next 5 landscape sheets: UMK2-001 weapon bar, UMK2-002 top plate, UMK2-003 bottom plate, UMK2-004 frame, UMK2-005 fork.</p>
+</section>
+
+<section class="sheet"><img src="drawings/UMK2-001_weapon_bar.png" alt=""></section>
+<section class="sheet"><img src="drawings/UMK2-002_top_plate.png" alt=""></section>
+<section class="sheet"><img src="drawings/UMK2-003_bottom_plate.png" alt=""></section>
+<section class="sheet"><img src="drawings/UMK2-004_frame.png" alt=""></section>
+<section class="sheet"><img src="drawings/UMK2-005_fork.png" alt=""></section>
+
+<section class="sheet"><h2 style="text-align:left">7 · Wiring</h2><img src="drawings/UMK2-E01_wiring.png" alt="" style="max-height:170mm"></section>
+<section>
+<h3>Wire list</h3>
+<table><tr><th>From</th><th>To</th><th>Wire</th><th>Connector</th><th>Approx. length</th></tr>
+<tr><td>Battery +/−</td><td>Power link</td><td>14 AWG silicone</td><td>XT30</td><td>60 mm</td></tr>
+<tr><td>Power link</td><td>Weapon ESC +, Drive ESC +</td><td>14 AWG / 18 AWG</td><td>solder splice</td><td>80 / 60 mm</td></tr>
+<tr><td>GND bus</td><td>Weapon ESC −, Drive ESC −</td><td>14 AWG / 18 AWG</td><td>solder splice</td><td>80 / 60 mm</td></tr>
+<tr><td>Weapon ESC A/B/C</td><td>Hub motor</td><td>3 × 14 AWG</td><td>3.5 mm bullets</td><td>≤ 70 mm</td></tr>
+<tr><td>Drive ESC L-A/B/C, R-A/B/C</td><td>Drive motors</td><td>6 × 18 AWG</td><td>2 mm bullets</td><td>≤ 50 mm</td></tr>
+<tr><td>Receiver CH1/CH2/CH3</td><td>Drive ESC / Weapon ESC</td><td>26 AWG servo</td><td>JR/Dupont 3-pin</td><td>as needed</td></tr></table>
+<h3>Receiver channels</h3>
+<table><tr><th>Channel</th><th>Function</th><th>Goes to</th><th>Transmitter setting</th></tr>
+<tr><td>CH1</td><td>Steering</td><td>Drive ESC CH1</td><td>Arcade mix (on TX or ESC, not both); rate 70% to start</td></tr>
+<tr><td>CH2</td><td>Throttle</td><td>Drive ESC CH2</td><td>Centred = stop; both directions</td></tr>
+<tr><td>CH3</td><td>Weapon</td><td>Weapon ESC SIG</td><td>On a switch or slider; low = off; never on a sprung stick</td></tr>
+<tr><td>CH5 (optional)</td><td>Weapon brake / arm</td><td>Weapon ESC (if supported)</td><td>2-position switch</td></tr></table>
+</section>
+
+<section class="sheet"><h2 style="text-align:left">8 · Assembly</h2><img src="drawings/UMK2-A01_exploded_assembly.png" alt="" style="max-height:170mm"></section>
+<section style="break-before:page">
+<ol>
+<li><b>Check the frame (4):</b> push a drive motor into each bore. It should be a firm press fit; ream with a heated rod if too tight. Install the 12 M3 heat-set inserts at 220 °C, flush with the surface.</li>
+<li><b>Drive (7, 5):</b> press the drive motors in, route their leads into the ESC bays, then fit the hubs and wheels. Spin by hand to check for rubbing.</li>
+<li><b>Bottom plate (3) and fork (15):</b> bolt the fork on, then bolt the bottom plate to the frame (M3, 0.5 N·m). Put it on a flat surface and check the fork tip sits 0.5–1.0 mm above it.</li>
+<li><b>Weapon motor (6):</b> bolt the stator flange to the bottom plate (M4 + Loctite, 2.0 N·m). It must spin freely.</li>
+<li><b>Bar (1, 10):</b> bolt the bar to the motor bell with 4× M5 12.9 + Loctite 243 at 4.5 N·m, tightening in a cross pattern. Check run-out at the tips is under 0.5 mm.</li>
+<li><b>Electronics (11–14, 8):</b> solder per §7, heat-shrink every joint, foam-wrap the ESCs, fit the receiver with its antenna away from the motor wires, mount the power link where you can reach it, strap the battery in.</li>
+<li><b>Top plate (2, 9):</b> fit it last, M4 into the motor (2.0 N·m) and M3 into the inserts (0.5 N·m).</li>
+<li><b>Weigh it.</b> It must be ≤ 1,361 g ready to fight. Record the actual weight of every part in <code>params.py</code>.</li>
+</ol>
+</section>
+
+<section style="break-before:page">
+<h2>9 · Radio and speed-controller setup</h2>
+<ol>
+<li>Bind the receiver. Set failsafe to <b>"no pulses"</b>, or to all channels at stop and weapon at 0%.</li>
+<li><b>Weapon ESC</b> (BLHeli/AM32 configurator): direction counter-clockwise viewed from the top (§6 drawing); startup power low; <b>ramp-up 1–2 s</b>; low-voltage cutoff OFF (combat); timing medium; brake on stop optional (P2 upgrade).</li>
+<li>Calibrate the weapon ESC throttle range to the transmitter (full → zero).</li>
+<li><b>Drive ESC:</b> reversing mode ON; confirm left and right directions and mixing. Swap two phase wires to reverse a motor.</li>
+<li><b>Failsafe test:</b> with the bar removed and the weapon running, switch the transmitter off. Every motor must stop within 1 s.</li>
+</ol>
+
+<h2>10 · Testing and quality checks</h2>
+<table><tr><th>Test</th><th>Pass condition</th><th>Expected (simulated)</th></tr>
+<tr><td>Weight</td><td>≤ 1,361 g</td><td>1,328 g</td></tr>
+<tr><td>Bar balance</td><td>No visible wobble at 25% throttle</td><td>CoM &lt; 0.05 mm</td></tr>
+<tr><td>Failsafe</td><td>All motors stop &lt; 1 s</td><td>—</td></tr>
+<tr><td>Spin-up (test box)</td><td>90% speed in &lt; 3 s</td><td>2.0 s</td></tr>
+<tr><td>Weapon rpm (tachometer or telemetry)</td><td>≥ 9,000 rpm</td><td>~11,000 rpm</td></tr>
+<tr><td>Drive speed</td><td>≥ 2 m/s across a 2.4 m box</td><td>2.7 m/s</td></tr>
+<tr><td>3-minute run</td><td>ESCs/motors &lt; 80 °C, pack &gt; 3.6 V/cell at rest</td><td>7.4 of 7.7 Wh used</td></tr>
+<tr><td>Inverted drive</td><td>Drives upside down</td><td>wheels 8.8 mm proud</td></tr></table>
+<h3>Before every match</h3>
+<ul class="chk cols">
+<li>Battery charged and balanced</li><li>Bar screws torqued, teeth not cracked</li><li>Plate screws all present</li><li>Wheels secure, no TPU tears</li>
+<li>Fork height 0.5–1 mm</li><li>Failsafe test passed</li><li>Power link reachable, OFF</li><li>Weight checked with fork fitted</li></ul>
+
+<h2>11 · Spares and tools</h2>
+<div class="cols"><b>Spares:</b> bar ×1, teeth/inserts, top + bottom plate, frame ×1, forks ×2, drive motor ×1, weapon ESC, drive ESC, receiver, wheels ×2, batteries ×2, full screw set, heat-set inserts.<br><br>
+<b>Tools:</b> hex drivers 2/2.5/3/4 mm, torque driver (0.5–5 N·m), Loctite 243, soldering iron (60 W+), heat gun, multimeter, LiPo charger + fireproof bag, digital scale (1 g), tachometer, zip ties, Kapton tape, files/deburr tool.</div>
+
+<h2>12 · Safety</h2>
+<div class="box warn"><b>This robot stores about 940 J in a steel bar spinning at 130 m/s at the tips.</b> Only spin the weapon inside a closed test box or the arena. Arm and disarm only with the weapon pointing away from everyone. Remove the power link whenever the robot is carried or worked on. Charge LiPos in a fireproof bag and never leave them charging unattended. Follow your event's safety rules and pass the tech inspection.</div>
+</section>
+</body></html>
