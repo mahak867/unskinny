@@ -21,8 +21,35 @@ Change a number in `params.py`, run `make`, and the model, simulations and check
 
 ---
 
+## Screenshots
+
+From the interactive demo ([`unskinny-mk2.html`](unskinny-mk2.html)).
+
+| 3D model | Exploded view |
+|---|---|
+| ![3D viewer](images/viewer-iso.png) | ![Exploded view](images/viewer-exploded.png) |
+| **X-ray top plate**: hub motor, battery and speed controllers inside | **Stress map**: bar stress at full speed, highest at the bolt holes and slots |
+| ![X-ray](images/viewer-xray.png) | ![Stress map](images/viewer-stress-map.png) |
+| **Bar sweep**: the weapon's circle clears the frame by 13.5 mm | **Side view** |
+| ![Bar sweep](images/viewer-bar-sweep.png) | ![Side view](images/viewer-side.png) |
+
+**Design lab**: change motor, battery and bar size, and the charts and numbers update live
+
+![Design lab](images/design-lab.png)
+
+**Design checks**: geometry results from the CAD tests, physics checks recalculated live
+
+![Design checks](images/design-checks.png)
+
+**Fight simulator**: real-time physics match against a vertical spinner, with health bars and a hit log
+
+![Fight simulator](images/fight-simulator.png)
+
+---
+
 ## Contents
 
+1. [Screenshots](#screenshots)
 1. [Headline results](#headline-results)
 2. [Interactive demo](#interactive-demo)
 3. [Design](#design)
